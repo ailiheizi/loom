@@ -1,0 +1,65 @@
+name: CI
+
+# 跑不依赖外部 LLM 网关的离线验证（检索/扩池/飞轮/类型检查）。
+# 真调 AI 的端到端（选择层）需要 LLM key，不在 CI 跑。
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+jobs:
+  platform-offline-evals:
+    name: Platform 离线评测（检索/扩池/飞轮）
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: platform
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+      - name: Set up Python
+        run: uv python install 3.12
+      - name: Sync deps
+        run: uv sync
+      - name: 检索召回率（M3）
+        run: uv run python eval_retrieval.py
+      - name: WRITE_OWN 退化率（M4）
+        run: uv run python eval_writeown.py
+      - name: 飞轮健康度闭环（M5）
+        run: uv run python eval_flywheel.py
+
+  client-typecheck:
+    name: Client 类型检查
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: client
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: client/pnpm-lock.yaml
+      - name: Install deps
+        run: pnpm install --frozen-lockfile
+      - name: tsc --noEmit
+        run: node node_modules/typescript/bin/tsc --noEmit
+
+  contracts-parity:
+    name: 跨语言契约对拍（Pydantic ↔ zod）
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Python 侧 parse fixture
+        working-directory: platform
+        run: |
+          uv sync
+          uv run python -c "import json,loom_contracts as c; c.AssemblyPlan.model_validate(json.load(open('../fixtures/assembly-plan.sample.json')))" && echo "Pydantic parse OK"

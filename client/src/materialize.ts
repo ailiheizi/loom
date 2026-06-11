@@ -10,7 +10,7 @@
  * barrel append 用文本锚点插入：锚点是注释 `// <loom-anchor:xxx>`，
  * 在锚点行之前插入片段，幂等（已存在则跳过，对应 Hygen 的 skip_if）。
  */
-import { cpSync, readFileSync, writeFileSync, mkdirSync, existsSync, rmSync } from "node:fs";
+import { cpSync, readFileSync, writeFileSync, mkdirSync, existsSync, rmSync, symlinkSync } from "node:fs";
 import { dirname, join } from "node:path";
 import type { AssemblyPlan } from "./contracts.js";
 import type { CandidateMeta } from "./loadCandidates.js";
@@ -67,9 +67,25 @@ function appendAtAnchor(filePath: string, anchor: string, snippet: string): "app
 export function materialize(input: MaterializeInput): MaterializeResult {
   const { plan, candidates, coreSeams, baseDir, outDir, generatedContent } = input;
 
-  // 1. 从 base 复制出干净副本
+  // 1. 从 base 复制出干净副本（排除 node_modules：它是 pnpm 符号链接的几万文件，
+  //    cpSync 极慢且在新目录易失败。改为对 node_modules 建软链指向 base——
+  //    零复制开销、prisma/next 等二进制可用。generated/ 仍本地复制（prisma generate 会重写它）。
   if (existsSync(outDir)) rmSync(outDir, { recursive: true, force: true });
-  cpSync(baseDir, outDir, { recursive: true });
+  cpSync(baseDir, outDir, {
+    recursive: true,
+    filter: (src) => !src.replace(/\\/g, "/").includes("/node_modules"),
+  });
+  const baseNodeModules = join(baseDir, "node_modules");
+  const outNodeModules = join(outDir, "node_modules");
+  if (existsSync(baseNodeModules) && !existsSync(outNodeModules)) {
+    try {
+      // Windows 用 junction（不需管理员权限），unix 用 dir symlink
+      symlinkSync(baseNodeModules, outNodeModules, process.platform === "win32" ? "junction" : "dir");
+    } catch {
+      // 软链失败（如跨卷）则回退到完整复制
+      cpSync(baseNodeModules, outNodeModules, { recursive: true });
+    }
+  }
 
   const changes: FileChange[] = [];
   const deps: Array<{ name: string; version: string }> = [];
