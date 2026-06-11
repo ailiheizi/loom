@@ -1,0 +1,25 @@
+{
+  "idea_id": "saas-admin-lite",
+  "title": "SaaS 管理后台（精简档）",
+  "description": "最小可用后台：账号密码登录，登录后只读查看业务资源（Project）列表，表格展示。无写操作、无第三方依赖。",
+  "ecosystem": "node-ts-web",
+  "core_ref": "create-t3-app@7.39.x",
+  "complexity": "lite",
+  "capability_intents": [
+    {
+      "intent": "用户用账号密码登录",
+      "seam_id": "auth.oauth_provider",
+      "notes": "Credentials provider，无需第三方 OAuth 凭据，最低门槛"
+    },
+    {
+      "intent": "只读查看 Project 列表（list/get，无增删改）",
+      "seam_id": "data.crud_resource",
+      "notes": "只读 router，比全 CRUD 轻且安全"
+    },
+    {
+      "intent": "用数据表格展示 Project 列表",
+      "seam_id": "ui.data_table",
+      "notes": "零依赖表格"
+    }
+  ]
+}

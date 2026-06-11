@@ -17,8 +17,12 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 IDEA="${1:?用法: loom_assemble.sh <idea.json> [output_dir]}"
 OUT="${2:-$ROOT/.work/loom-output}"
 
-# 绝对路径化（避开 Windows cwd 不稳）
+# 绝对路径化（避开 Windows cwd 不稳）—— IDEA 和 OUT 都要，否则 cd 到 client 后相对路径错位
 case "$IDEA" in /*|?:*) ;; *) IDEA="$(cd "$(dirname "$IDEA")" && pwd)/$(basename "$IDEA")";; esac
+case "$OUT" in
+  /*|?:*) ;;
+  *) mkdir -p "$OUT"; OUT="$(cd "$OUT" && pwd)";;
+esac
 
 echo "[loom] 想法: $IDEA"
 echo "[loom] 输出: $OUT"

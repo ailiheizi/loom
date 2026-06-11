@@ -85,7 +85,18 @@ M5=docs 步骤8：合成/上传产物回流入池被复用、健康度闭环（d
 - 新增 `data.crud_resource/readonly-list`（只读列表 list+get，轻量 CRUD 变体，过 gate ✓）
 - 现状：auth 3 候选（google/github/credentials）、crud 3 候选（project-crud/generic-factory/readonly-list）、ui 2、其余各 1。**10/11 过 t3 gate**，唯一✗=tanstack（需外部依赖）。
 - 价值：① 登录/CRUD 两个最高频 seam 有了真竞争，AI 选择更贴合（全CRUD vs 只读、OAuth vs 密码）；② 验证了"守门保驾扩池"流程——不再出现坏候选混入。
-- **扩池源**：`.work/ingest-src/{credentials,readonly-list}.ts`。预制候选标准流程：写源（t3 严格模式无依赖）→ `ingest_file` 入池 → `verify_candidates.py` 过门。
+## 演进方向探索 + 复杂度梯度原型（2026-06-11）
+用户提出 3 个演进设想（workflow 多视角分析）：① AI 拆解上传飞轮自举（前人种树后人乘凉）② 复杂度梯度导航（自顶向下渐进选择）③ 前端 sha 预览。综合判断：**都与现有引擎互补、非推倒重来**；②最该先做（瓶颈是内容策展非技术）、①价值最高（瓶颈是质量+信任，地基 verify门/健康度飞轮已有）、③组件级可行整站级难。
+
+**复杂度梯度原型（②，已验证成立）**：同一"SaaS 后台"想法造 3 档变体 `ideas/variants/saas-admin-{lite,std,full}.json`，用现有引擎各组装一次，**全部 round-0 收敛**，产物复杂度真实递增：
+- lite：credentials 登录 + readonly-list 只读 + data-table（3 接缝，最简）
+- std：google + project 全 CRUD + data-table + csv-export（4 接缝，+写+导出）
+- full：std + markdown-view + csv-import（6 接缝，+富文本+批量导入）
+- **意义**：把"AI 拆功能"变成"用户选复杂度档"——需求是选出来的非 AI 猜的，拆错风险消失。复杂度梯度=同想法的 N 份 capability_intents 变体，下游完全复用现有检索+组装引擎。诚实瓶颈：梯度变体目前人工预制（自动生成复杂度排序难），是内容活非技术活。
+
+**本轮修的两个真 bug**：
+- materialize 软链 node_modules（已 commit）：但引出 prisma.CMD 经 junction 跑不通——根因其实是下一条。
+- **`loom_assemble.sh` 的 OUT 路径未绝对化**：传相对路径时 `cd $ROOT/client` 后错位成 `client/.work/...`，prisma 在错目录跑报"找不到路径"（双斜杠 `client//src`）。已修：OUT 与 IDEA 一样绝对路径化。修后 3 档全 round-0 收敛。**教训：所有传给跨目录调用的路径都要先绝对化。**
 **全套测试**：`cd platform && uv run python {ingest,eval_retrieval,eval_writeown,eval_flywheel}.py` + client tsc，全绿。
 
 ## 重要纠偏（本会话）

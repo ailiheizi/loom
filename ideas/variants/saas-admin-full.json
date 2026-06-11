@@ -1,0 +1,40 @@
+{
+  "idea_id": "saas-admin-full",
+  "title": "SaaS 管理后台（完整档）",
+  "description": "功能完整后台：Google 登录，对业务资源（Project）完整增删改查 + 表格展示 + 导出，资源详情支持 markdown 笔记渲染，支持从 CSV 批量导入。",
+  "ecosystem": "node-ts-web",
+  "core_ref": "create-t3-app@7.39.x",
+  "complexity": "full",
+  "capability_intents": [
+    {
+      "intent": "用户用 Google 账号 OAuth 登录",
+      "seam_id": "auth.oauth_provider",
+      "notes": "NextAuth v5 Google provider"
+    },
+    {
+      "intent": "对 Project 资源做完整增删改查",
+      "seam_id": "data.crud_resource",
+      "notes": "全 CRUD router"
+    },
+    {
+      "intent": "用数据表格展示 Project 列表",
+      "seam_id": "ui.data_table",
+      "notes": "零依赖表格"
+    },
+    {
+      "intent": "把 Project 列表导出为 CSV",
+      "seam_id": "report.custom_export",
+      "notes": "导出函数"
+    },
+    {
+      "intent": "资源详情的 markdown 笔记渲染为 HTML",
+      "seam_id": "content.markdown_render",
+      "notes": "markdown 渲染组件"
+    },
+    {
+      "intent": "从 CSV 文件批量导入 Project",
+      "seam_id": "data.bulk_import",
+      "notes": "CSV 解析器"
+    }
+  ]
+}

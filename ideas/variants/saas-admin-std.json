@@ -1,0 +1,30 @@
+{
+  "idea_id": "saas-admin-std",
+  "title": "SaaS 管理后台（标准档）",
+  "description": "标准后台：Google 账号登录，登录后对业务资源（Project）做完整增删改查，表格展示，支持列表导出。",
+  "ecosystem": "node-ts-web",
+  "core_ref": "create-t3-app@7.39.x",
+  "complexity": "std",
+  "capability_intents": [
+    {
+      "intent": "用户用 Google 账号 OAuth 登录",
+      "seam_id": "auth.oauth_provider",
+      "notes": "NextAuth v5 Google provider"
+    },
+    {
+      "intent": "对 Project 资源做完整增删改查（list/get/create/update/delete）",
+      "seam_id": "data.crud_resource",
+      "notes": "全 CRUD router"
+    },
+    {
+      "intent": "用数据表格展示 Project 列表",
+      "seam_id": "ui.data_table",
+      "notes": "零依赖表格"
+    },
+    {
+      "intent": "把 Project 列表导出为 CSV",
+      "seam_id": "report.custom_export",
+      "notes": "导出函数"
+    }
+  ]
+}
