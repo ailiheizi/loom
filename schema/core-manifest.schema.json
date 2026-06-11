@@ -1,0 +1,183 @@
+{
+  "$defs": {
+    "BarrelOp": {
+      "description": "接入口的 append 操作类型（文件级拼装，绝不做 AST 行级合并）。",
+      "enum": [
+        "object-key-append",
+        "array-append",
+        "model-append",
+        "file-add"
+      ],
+      "title": "BarrelOp",
+      "type": "string"
+    },
+    "BarrelSpec": {
+      "description": "seam 的接入口规格：在哪个文件、哪个锚点、用什么 op append。",
+      "properties": {
+        "file": {
+          "description": "core 内的接入口文件，如 src/server/api/root.ts",
+          "title": "File",
+          "type": "string"
+        },
+        "anchor_import": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "import 区锚点注释，如 // <loom-anchor:router-imports>",
+          "title": "Anchor Import"
+        },
+        "anchor_register": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "注册区锚点注释，如 // <loom-anchor:router-register>",
+          "title": "Anchor Register"
+        },
+        "op": {
+          "$ref": "#/$defs/BarrelOp",
+          "description": "append 操作类型"
+        }
+      },
+      "required": [
+        "file",
+        "op"
+      ],
+      "title": "BarrelSpec",
+      "type": "object"
+    },
+    "SeamSpec": {
+      "description": "core 暴露的一个接缝（扩展点）。",
+      "properties": {
+        "seam_id": {
+          "description": "唯一接缝 id，如 auth.oauth_provider",
+          "title": "Seam Id",
+          "type": "string"
+        },
+        "kind": {
+          "description": "接缝种类，如 nextauth-provider / trpc-router / route-handler / ui-component",
+          "title": "Kind",
+          "type": "string"
+        },
+        "signature": {
+          "description": "接口签名（自然语言或类型字符串）",
+          "title": "Signature",
+          "type": "string"
+        },
+        "signature_ref": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "指向真实 .d.ts 类型的引用，强制机器可读时填（命门#4）",
+          "title": "Signature Ref"
+        },
+        "barrel": {
+          "$ref": "#/$defs/BarrelSpec",
+          "description": "接入口规格"
+        },
+        "target": {
+          "description": "pick 候选文件落盘的目标目录",
+          "title": "Target",
+          "type": "string"
+        },
+        "compat_range": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "兼容版本范围，如 next-auth@^5",
+          "title": "Compat Range"
+        },
+        "cardinality": {
+          "default": "one",
+          "description": "one | many；many 表一个 seam 可装多个候选",
+          "title": "Cardinality",
+          "type": "string"
+        },
+        "env_vars": {
+          "description": "该 seam 连带需要的环境变量名",
+          "items": {
+            "type": "string"
+          },
+          "title": "Env Vars",
+          "type": "array"
+        }
+      },
+      "required": [
+        "seam_id",
+        "kind",
+        "signature",
+        "barrel",
+        "target"
+      ],
+      "title": "SeamSpec",
+      "type": "object"
+    }
+  },
+  "description": "loom.core.json —— 一个 core 的 seam 声明清单。",
+  "properties": {
+    "core_id": {
+      "description": "core 标识，如 create-t3-app",
+      "title": "Core Id",
+      "type": "string"
+    },
+    "core_version": {
+      "description": "钉死的版本",
+      "title": "Core Version",
+      "type": "string"
+    },
+    "content_hash": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "sha256:<hex>，MVP 可空",
+      "title": "Content Hash"
+    },
+    "language": {
+      "default": "typescript",
+      "title": "Language",
+      "type": "string"
+    },
+    "seams": {
+      "items": {
+        "$ref": "#/$defs/SeamSpec"
+      },
+      "title": "Seams",
+      "type": "array"
+    }
+  },
+  "required": [
+    "core_id",
+    "core_version"
+  ],
+  "title": "CoreManifest",
+  "type": "object"
+}

@@ -1,0 +1,53 @@
+{
+  "registry_item": {
+    "name": "csv-contacts-import",
+    "type": "registry:lib",
+    "title": "csv-contacts-import",
+    "description": "parseContactsCsv 把 CSV 文本解析为 {name,description}[]，支持引号转义和中英文表头，零依赖",
+    "dependencies": [],
+    "registry_dependencies": [],
+    "files": [
+      {
+        "path": "files/csv-import.ts",
+        "type": "registry:lib",
+        "target": "src/server/import/csv-import.ts",
+        "hash": null
+      }
+    ],
+    "css_vars": {},
+    "env_vars": {},
+    "meta_loom": {
+      "seam_id": "data.bulk_import",
+      "interface_sig": "function parseContactsCsv(csv: string): ParsedRecord[]",
+      "provenance": "platform",
+      "health": 0.7,
+      "content_hash": "sha256:72518497e0fa9fd6",
+      "license": "MIT",
+      "ext_pkgs": []
+    }
+  },
+  "l0": {
+    "ref": "csv-contacts-import",
+    "seam_id": "data.bulk_import",
+    "summary": "parseContactsCsv 把 CSV 文本解析为 {name,description}[]，支持引号转义和中英文表头，零依赖",
+    "deps": [],
+    "loc": 61,
+    "health": 0.7,
+    "provenance": "platform",
+    "content_hash": "sha256:72518497e0fa9fd6"
+  },
+  "l1": {
+    "ref": "csv-contacts-import",
+    "content_hash": "sha256:72518497e0fa9fd6",
+    "exports": [
+      {
+        "name": "parseContactsCsv",
+        "signature": "function parseContactsCsv(csv: string): ParsedRecord[]",
+        "kind": "function"
+      }
+    ],
+    "types": [],
+    "imports": []
+  },
+  "barrel_snippet": {}
+}

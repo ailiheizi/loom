@@ -1,0 +1,57 @@
+{
+  "registry_item": {
+    "name": "project-crud-router",
+    "type": "registry:lib",
+    "title": "Project CRUD Router",
+    "description": "面向 Project 资源的 tRPC v11 CRUD router，沿用 t3-base 的 protectedProcedure 与 Prisma ctx.db 写法",
+    "dependencies": [],
+    "registry_dependencies": [],
+    "files": [
+      {
+        "path": "files/project.ts",
+        "type": "registry:lib",
+        "target": "src/server/api/routers/project.ts",
+        "hash": null
+      }
+    ],
+    "css_vars": {},
+    "env_vars": {},
+    "meta_loom": {
+      "seam_id": "data.crud_resource",
+      "interface_sig": "export const projectRouter = createTRPCRouter({...})",
+      "provenance": "platform",
+      "health": 1.0,
+      "content_hash": null,
+      "license": "MIT",
+      "ext_pkgs": [],
+      "requires_prisma_model": "Project"
+    }
+  },
+  "l0": {
+    "ref": "project-crud-router",
+    "seam_id": "data.crud_resource",
+    "summary": "Project 资源的 tRPC v11 CRUD router，使用 protectedProcedure、zod input 与 Prisma ctx.db.project",
+    "deps": [],
+    "loc": 60,
+    "health": 1.0,
+    "provenance": "platform",
+    "content_hash": null
+  },
+  "l1": {
+    "ref": "project-crud-router",
+    "content_hash": null,
+    "exports": [
+      {
+        "name": "projectRouter",
+        "signature": "const projectRouter: ReturnType<typeof createTRPCRouter>",
+        "kind": "const"
+      }
+    ],
+    "types": [],
+    "imports": ["zod", "~/server/api/trpc"]
+  },
+  "barrel_snippet": {
+    "import": "import { projectRouter } from \"~/server/api/routers/project\";",
+    "register": "project: projectRouter,"
+  }
+}

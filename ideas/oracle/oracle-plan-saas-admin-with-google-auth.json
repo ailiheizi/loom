@@ -1,0 +1,12 @@
+{
+  "idea_id": "saas-admin-with-google-auth",
+  "core_ref": "create-t3-app@7.39.x",
+  "seams": [
+    { "seam_id": "auth.oauth_provider", "action": "pick", "ref": "google-oauth", "confidence": 1.0, "why": "oracle: 想法要 Google 登录，google-oauth 直接命中、零依赖、health=1.0" },
+    { "seam_id": "data.crud_resource", "action": "pick", "ref": "project-crud-router", "confidence": 1.0, "why": "oracle: 单一 Project 资源，专用 router 比泛化工厂更贴合，无 ctx 顶层问题" },
+    { "seam_id": "ui.data_table", "action": "pick", "ref": "simple-data-table", "confidence": 1.0, "why": "oracle: 零外部依赖、loc 小、签名与 tanstack 版一致，管理后台够用" },
+    { "seam_id": "report.custom_export", "action": "generate", "ref": null, "generated_file": "src/app/_components/export-button.tsx", "confidence": 1.0, "why": "oracle: 池中无导出候选，生成客户端 Blob/CSV 导出按钮（无依赖）" }
+  ],
+  "synthesized": ["src/app/_components/export-button.tsx"],
+  "budget": { "input_tok": 0, "output_tok": 0 }
+}

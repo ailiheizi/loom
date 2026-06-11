@@ -1,0 +1,12 @@
+{
+  "idea_id": "task-tracker-with-github-auth",
+  "core_ref": "create-t3-app@7.39.x",
+  "seams": [
+    { "seam_id": "auth.oauth_provider", "action": "pick", "ref": "github-oauth", "confidence": 1.0, "why": "oracle: 想法要 GitHub 登录，github-oauth 直接命中" },
+    { "seam_id": "data.crud_resource", "action": "pick", "ref": "project-crud-router", "confidence": 1.0, "why": "oracle: Task 单资源，name=标题/description=详情，专用 router 贴合" },
+    { "seam_id": "ui.data_table", "action": "pick", "ref": "simple-data-table", "confidence": 1.0, "why": "oracle: 零依赖表格够用" },
+    { "seam_id": "content.markdown_render", "action": "generate", "ref": null, "generated_file": "src/app/_components/markdown-view.tsx", "confidence": 1.0, "why": "oracle: 池中无 markdown 渲染候选，生成无依赖的极简 markdown→HTML 组件" }
+  ],
+  "synthesized": ["src/app/_components/markdown-view.tsx"],
+  "budget": { "input_tok": 0, "output_tok": 0 }
+}

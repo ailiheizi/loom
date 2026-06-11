@@ -1,0 +1,104 @@
+{
+  "core_id": "create-t3-app",
+  "core_version": "7.39.x",
+  "content_hash": null,
+  "language": "typescript",
+  "seams": [
+    {
+      "seam_id": "auth.oauth_provider",
+      "kind": "nextauth-provider",
+      "signature": "OAuthConfig provider 实例，加入 authConfig.providers[]",
+      "signature_ref": "node_modules/next-auth/providers/index.d.ts",
+      "barrel": {
+        "file": "src/server/auth/config.ts",
+        "anchor_import": "// <loom-anchor:provider-imports>",
+        "anchor_register": "// <loom-anchor:providers>",
+        "op": "array-append"
+      },
+      "target": "src/server/auth/providers/",
+      "compat_range": "next-auth@^5",
+      "cardinality": "many",
+      "env_vars": ["AUTH_<PROVIDER>_ID", "AUTH_<PROVIDER>_SECRET"]
+    },
+    {
+      "seam_id": "data.crud_resource",
+      "kind": "trpc-router",
+      "signature": "createTRPCRouter({...}) 实例，注册进 appRouter",
+      "signature_ref": "src/server/api/trpc.ts",
+      "barrel": {
+        "file": "src/server/api/root.ts",
+        "anchor_import": "// <loom-anchor:router-imports>",
+        "anchor_register": "// <loom-anchor:router-register>",
+        "op": "object-key-append"
+      },
+      "target": "src/server/api/routers/",
+      "compat_range": "@trpc/server@^11",
+      "cardinality": "many",
+      "env_vars": []
+    },
+    {
+      "seam_id": "ui.data_table",
+      "kind": "ui-component",
+      "signature": "React 组件 <DataTable columns rows />，纯新增文件",
+      "signature_ref": null,
+      "barrel": {
+        "file": "src/app/_components/",
+        "anchor_import": null,
+        "anchor_register": null,
+        "op": "file-add"
+      },
+      "target": "src/app/_components/",
+      "compat_range": "react@^19",
+      "cardinality": "many",
+      "env_vars": []
+    },
+    {
+      "seam_id": "report.custom_export",
+      "kind": "lib-function",
+      "signature": "(rows: T[]) => Buffer | Blob，把数据导出为 xlsx/csv",
+      "signature_ref": null,
+      "barrel": {
+        "file": "src/server/",
+        "anchor_import": null,
+        "anchor_register": null,
+        "op": "file-add"
+      },
+      "target": "src/server/export/",
+      "compat_range": null,
+      "cardinality": "one",
+      "env_vars": []
+    },
+    {
+      "seam_id": "content.markdown_render",
+      "kind": "ui-component",
+      "signature": "React 组件 <MarkdownView source={string} />，把 markdown 文本渲染为 HTML",
+      "signature_ref": null,
+      "barrel": {
+        "file": "src/app/_components/",
+        "anchor_import": null,
+        "anchor_register": null,
+        "op": "file-add"
+      },
+      "target": "src/app/_components/",
+      "compat_range": "react@^19",
+      "cardinality": "one",
+      "env_vars": []
+    },
+    {
+      "seam_id": "data.bulk_import",
+      "kind": "lib-function",
+      "signature": "(csv: string) => { name: string; description?: string }[]，解析 CSV 为可批量创建的记录数组",
+      "signature_ref": null,
+      "barrel": {
+        "file": "src/server/",
+        "anchor_import": null,
+        "anchor_register": null,
+        "op": "file-add"
+      },
+      "target": "src/server/import/",
+      "compat_range": null,
+      "cardinality": "one",
+      "env_vars": []
+    }
+  ]
+}

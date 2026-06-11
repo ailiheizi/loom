@@ -1,0 +1,142 @@
+{
+  "$defs": {
+    "BarrelMutation": {
+      "description": "对接入口文件的一次 append 操作。",
+      "properties": {
+        "file": {
+          "title": "File",
+          "type": "string"
+        },
+        "anchor": {
+          "description": "目标锚点注释",
+          "title": "Anchor",
+          "type": "string"
+        },
+        "op": {
+          "$ref": "#/$defs/BarrelOp"
+        },
+        "snippet": {
+          "description": "要 append 的代码片段",
+          "title": "Snippet",
+          "type": "string"
+        }
+      },
+      "required": [
+        "file",
+        "anchor",
+        "op",
+        "snippet"
+      ],
+      "title": "BarrelMutation",
+      "type": "object"
+    },
+    "BarrelOp": {
+      "description": "接入口的 append 操作类型（文件级拼装，绝不做 AST 行级合并）。",
+      "enum": [
+        "object-key-append",
+        "array-append",
+        "model-append",
+        "file-add"
+      ],
+      "title": "BarrelOp",
+      "type": "string"
+    },
+    "ExtPkg": {
+      "description": "候选依赖的外部 npm 包。",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "version": {
+          "description": "精确 pin 版本",
+          "title": "Version",
+          "type": "string"
+        },
+        "license": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "License"
+        }
+      },
+      "required": [
+        "name",
+        "version"
+      ],
+      "title": "ExtPkg",
+      "type": "object"
+    },
+    "ManifestFile": {
+      "description": "manifest 中声明的一个目标文件来源。",
+      "properties": {
+        "target": {
+          "description": "目标项目内的文件路径",
+          "title": "Target",
+          "type": "string"
+        },
+        "source": {
+          "description": "来源：sha256:<hex> 或 MVP 下的候选文件路径",
+          "title": "Source",
+          "type": "string"
+        },
+        "op": {
+          "$ref": "#/$defs/BarrelOp",
+          "default": "file-add"
+        }
+      },
+      "required": [
+        "target",
+        "source"
+      ],
+      "title": "ManifestFile",
+      "type": "object"
+    }
+  },
+  "description": "平台 resolve 出的确定性物化清单。",
+  "properties": {
+    "core_ref": {
+      "title": "Core Ref",
+      "type": "string"
+    },
+    "files": {
+      "items": {
+        "$ref": "#/$defs/ManifestFile"
+      },
+      "title": "Files",
+      "type": "array"
+    },
+    "barrel_ops": {
+      "items": {
+        "$ref": "#/$defs/BarrelMutation"
+      },
+      "title": "Barrel Ops",
+      "type": "array"
+    },
+    "deps": {
+      "items": {
+        "$ref": "#/$defs/ExtPkg"
+      },
+      "title": "Deps",
+      "type": "array"
+    },
+    "env_vars": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Env Vars",
+      "type": "array"
+    }
+  },
+  "required": [
+    "core_ref"
+  ],
+  "title": "Manifest",
+  "type": "object"
+}

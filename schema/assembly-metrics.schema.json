@@ -1,0 +1,143 @@
+{
+  "$defs": {
+    "RepairRound": {
+      "description": "修复循环的一轮记录。",
+      "properties": {
+        "round_index": {
+          "title": "Round Index",
+          "type": "integer"
+        },
+        "error_count": {
+          "title": "Error Count",
+          "type": "integer"
+        },
+        "error_fingerprints": {
+          "description": "用于震荡检测（错误指纹集是否严格下降）",
+          "items": {
+            "type": "string"
+          },
+          "title": "Error Fingerprints",
+          "type": "array"
+        },
+        "input_tok": {
+          "default": 0,
+          "title": "Input Tok",
+          "type": "integer"
+        },
+        "output_tok": {
+          "default": 0,
+          "title": "Output Tok",
+          "type": "integer"
+        },
+        "auto_fixed": {
+          "default": 0,
+          "description": "确定性机器自动修掉的数量",
+          "title": "Auto Fixed",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "round_index",
+        "error_count"
+      ],
+      "title": "RepairRound",
+      "type": "object"
+    }
+  },
+  "description": "一次组装的完整埋点（组装臂/从零臂共用）。",
+  "properties": {
+    "arm": {
+      "description": "assembly | from_zero | oracle",
+      "title": "Arm",
+      "type": "string"
+    },
+    "idea_id": {
+      "title": "Idea Id",
+      "type": "string"
+    },
+    "total_input_tok": {
+      "default": 0,
+      "title": "Total Input Tok",
+      "type": "integer"
+    },
+    "total_output_tok": {
+      "default": 0,
+      "title": "Total Output Tok",
+      "type": "integer"
+    },
+    "retry_input_tok": {
+      "default": 0,
+      "description": "instructor schema 重试消耗，单独计量不计入 ΔRepair",
+      "title": "Retry Input Tok",
+      "type": "integer"
+    },
+    "rounds": {
+      "items": {
+        "$ref": "#/$defs/RepairRound"
+      },
+      "title": "Rounds",
+      "type": "array"
+    },
+    "converged": {
+      "default": false,
+      "description": "3 轮内是否到 0 error",
+      "title": "Converged",
+      "type": "boolean"
+    },
+    "final_error_count": {
+      "default": 0,
+      "title": "Final Error Count",
+      "type": "integer"
+    },
+    "write_own_ratio": {
+      "default": 0.0,
+      "description": "action=generate 的 seam 占比",
+      "title": "Write Own Ratio",
+      "type": "number"
+    },
+    "fix_diff_lines": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "到 0-error 后人工 fix 行数",
+      "title": "Fix Diff Lines"
+    },
+    "extend_diff_lines": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "extend 行数，不计扣分",
+      "title": "Extend Diff Lines"
+    },
+    "total_delivered_lines": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Total Delivered Lines"
+    }
+  },
+  "required": [
+    "arm",
+    "idea_id"
+  ],
+  "title": "AssemblyMetrics",
+  "type": "object"
+}

@@ -1,0 +1,29 @@
+{
+  "idea_id": "task-tracker-with-github-auth",
+  "title": "带 GitHub 登录的任务追踪器",
+  "description": "一个任务追踪应用：用户用 GitHub 账号登录，登录后对任务（Task）做增删改查，列表用数据表格展示，任务详情支持 markdown 笔记渲染。",
+  "ecosystem": "node-ts-web",
+  "core_ref": "create-t3-app@7.39.x",
+  "capability_intents": [
+    {
+      "intent": "用户能用 GitHub 账号 OAuth 登录",
+      "seam_id": "auth.oauth_provider",
+      "notes": "NextAuth v5 provider，接入 authConfig.providers[]"
+    },
+    {
+      "intent": "对 Task 资源做增删改查（标题=name，详情=description）",
+      "seam_id": "data.crud_resource",
+      "notes": "tRPC router，注册进 appRouter，字段映射到 Project model 的 name/description"
+    },
+    {
+      "intent": "用数据表格展示 Task 列表",
+      "seam_id": "ui.data_table",
+      "notes": "React 表格组件，纯新增文件"
+    },
+    {
+      "intent": "任务详情的 markdown 笔记渲染为 HTML",
+      "seam_id": "content.markdown_render",
+      "notes": "候选池里没有 markdown 渲染组件，预期触发 WRITE_OWN(generate)"
+    }
+  ]
+}

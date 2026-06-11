@@ -1,0 +1,66 @@
+{
+  "$defs": {
+    "L2File": {
+      "description": "L2 全文层的一个文件。",
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "content": {
+          "title": "Content",
+          "type": "string"
+        },
+        "hash": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Hash"
+        }
+      },
+      "required": [
+        "path",
+        "content"
+      ],
+      "title": "L2File",
+      "type": "object"
+    }
+  },
+  "description": "L2 全文（AI 明确 EXPAND 才给，最贵）。",
+  "properties": {
+    "ref": {
+      "title": "Ref",
+      "type": "string"
+    },
+    "content_hash": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Content Hash"
+    },
+    "files": {
+      "items": {
+        "$ref": "#/$defs/L2File"
+      },
+      "title": "Files",
+      "type": "array"
+    }
+  },
+  "required": [
+    "ref"
+  ],
+  "title": "L2FullText",
+  "type": "object"
+}

@@ -1,0 +1,58 @@
+{
+  "registry_item": {
+    "name": "csv-export-fn",
+    "type": "registry:lib",
+    "title": "csv-export-fn",
+    "description": "rowsToCsv/toCsvBlob 把行数据导出为 CSV Blob，处理逗号引号换行转义，零依赖浏览器原生",
+    "dependencies": [],
+    "registry_dependencies": [],
+    "files": [
+      {
+        "path": "files/csv-export.ts",
+        "type": "registry:lib",
+        "target": "src/server/export/csv-export.ts",
+        "hash": null
+      }
+    ],
+    "css_vars": {},
+    "env_vars": {},
+    "meta_loom": {
+      "seam_id": "report.custom_export",
+      "interface_sig": "function rowsToCsv(rows: ExportRow[], columns?: string[]): string",
+      "provenance": "platform",
+      "health": 0.7,
+      "content_hash": "sha256:313c1381607bb8e2",
+      "license": "MIT",
+      "ext_pkgs": []
+    }
+  },
+  "l0": {
+    "ref": "csv-export-fn",
+    "seam_id": "report.custom_export",
+    "summary": "rowsToCsv/toCsvBlob 把行数据导出为 CSV Blob，处理逗号引号换行转义，零依赖浏览器原生",
+    "deps": [],
+    "loc": 26,
+    "health": 0.7,
+    "provenance": "platform",
+    "content_hash": "sha256:313c1381607bb8e2"
+  },
+  "l1": {
+    "ref": "csv-export-fn",
+    "content_hash": "sha256:313c1381607bb8e2",
+    "exports": [
+      {
+        "name": "rowsToCsv",
+        "signature": "function rowsToCsv(rows: ExportRow[], columns?: string[]): string",
+        "kind": "function"
+      },
+      {
+        "name": "toCsvBlob",
+        "signature": "function toCsvBlob(rows: ExportRow[], columns?: string[]): Blob",
+        "kind": "function"
+      }
+    ],
+    "types": [],
+    "imports": []
+  },
+  "barrel_snippet": {}
+}

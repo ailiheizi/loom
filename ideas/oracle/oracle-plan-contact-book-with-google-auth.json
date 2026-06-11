@@ -1,0 +1,12 @@
+{
+  "idea_id": "contact-book-with-google-auth",
+  "core_ref": "create-t3-app@7.39.x",
+  "seams": [
+    { "seam_id": "auth.oauth_provider", "action": "pick", "ref": "google-oauth", "confidence": 1.0, "why": "oracle: 想法要 Google 登录，google-oauth 直接命中" },
+    { "seam_id": "data.crud_resource", "action": "pick", "ref": "project-crud-router", "confidence": 1.0, "why": "oracle: Contact 单资源，name=姓名/description=备注，专用 router 贴合" },
+    { "seam_id": "ui.data_table", "action": "pick", "ref": "simple-data-table", "confidence": 1.0, "why": "oracle: 零依赖表格够用" },
+    { "seam_id": "data.bulk_import", "action": "generate", "ref": null, "generated_file": "src/server/import/csv-import.ts", "confidence": 1.0, "why": "oracle: 池中无 CSV 批量导入候选，生成无依赖的极简 CSV 解析函数" }
+  ],
+  "synthesized": ["src/server/import/csv-import.ts"],
+  "budget": { "input_tok": 0, "output_tok": 0 }
+}

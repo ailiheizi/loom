@@ -1,0 +1,59 @@
+{
+  "registry_item": {
+    "name": "generic-crud-factory",
+    "type": "registry:lib",
+    "title": "Generic CRUD Router Factory",
+    "description": "抽象出可复用的 tRPC v11 CRUD router 工厂函数，适配 Prisma 风格 model delegate",
+    "dependencies": [],
+    "registry_dependencies": [],
+    "files": [
+      {
+        "path": "files/crud-factory.ts",
+        "type": "registry:lib",
+        "target": "src/server/api/routers/crud-factory.ts",
+        "hash": null
+      }
+    ],
+    "css_vars": {},
+    "env_vars": {},
+    "meta_loom": {
+      "seam_id": "data.crud_resource",
+      "interface_sig": "export const createCrudRouter: (model: CrudModel) => ReturnType<typeof createTRPCRouter>",
+      "provenance": "platform",
+      "health": 0.85,
+      "content_hash": null,
+      "license": "MIT",
+      "ext_pkgs": [],
+      "requires_prisma_model": "Project"
+    }
+  },
+  "l0": {
+    "ref": "generic-crud-factory",
+    "seam_id": "data.crud_resource",
+    "summary": "可复用的 tRPC v11 CRUD router 工厂，接收 Prisma 风格 model delegate 并生成 list/get/create/update/delete",
+    "deps": [],
+    "loc": 74,
+    "health": 0.85,
+    "provenance": "platform",
+    "content_hash": null
+  },
+  "l1": {
+    "ref": "generic-crud-factory",
+    "content_hash": null,
+    "exports": [
+      {
+        "name": "createCrudRouter",
+        "signature": "const createCrudRouter: (model: CrudModel) => ReturnType<typeof createTRPCRouter>",
+        "kind": "const"
+      }
+    ],
+    "types": [
+      "type CrudModel = { findMany: Function; findUnique: Function; create: Function; update: Function; delete: Function }"
+    ],
+    "imports": ["zod", "~/server/api/trpc"]
+  },
+  "barrel_snippet": {
+    "import": "import { projectRouter } from \"~/server/api/routers/crud-factory\";",
+    "register": "project: projectRouter,"
+  }
+}

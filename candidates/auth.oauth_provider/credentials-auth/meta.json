@@ -1,0 +1,56 @@
+{
+  "registry_item": {
+    "name": "credentials-auth",
+    "type": "registry:lib",
+    "title": "credentials-auth",
+    "description": "账号密码登录 provider（NextAuth v5 Credentials），非 OAuth，邮箱+密码 authorize，接入 providers[]",
+    "dependencies": [],
+    "registry_dependencies": [],
+    "files": [
+      {
+        "path": "files/credentials.ts",
+        "type": "registry:lib",
+        "target": "src/server/auth/providers/credentials.ts",
+        "hash": null
+      }
+    ],
+    "css_vars": {},
+    "env_vars": {},
+    "meta_loom": {
+      "seam_id": "auth.oauth_provider",
+      "interface_sig": "const credentialsProvider = CredentialsProvider(",
+      "provenance": "platform",
+      "health": 0.7,
+      "content_hash": "sha256:b78a3afac5b299a9",
+      "license": "MIT",
+      "ext_pkgs": []
+    }
+  },
+  "l0": {
+    "ref": "credentials-auth",
+    "seam_id": "auth.oauth_provider",
+    "summary": "账号密码登录 provider（NextAuth v5 Credentials），非 OAuth，邮箱+密码 authorize，接入 providers[]",
+    "deps": [],
+    "loc": 26,
+    "health": 0.7,
+    "provenance": "platform",
+    "content_hash": "sha256:b78a3afac5b299a9"
+  },
+  "l1": {
+    "ref": "credentials-auth",
+    "content_hash": "sha256:b78a3afac5b299a9",
+    "exports": [
+      {
+        "name": "credentialsProvider",
+        "signature": "const credentialsProvider = CredentialsProvider(",
+        "kind": "const"
+      }
+    ],
+    "types": [],
+    "imports": []
+  },
+  "barrel_snippet": {
+    "import": "import { credentialsProvider } from \"~/server/auth/providers/credentials\";",
+    "register": "credentialsProvider,"
+  }
+}

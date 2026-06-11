@@ -1,0 +1,28 @@
+{
+  "description": "target → source@hash 全量映射 + 整树 merkle root，供校验与回滚。",
+  "properties": {
+    "root": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "整树 merkle root，sha256:<hex>，MVP 可空",
+      "title": "Root"
+    },
+    "entries": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "description": "target 路径 → source@hash",
+      "title": "Entries",
+      "type": "object"
+    }
+  },
+  "title": "Lockfile",
+  "type": "object"
+}

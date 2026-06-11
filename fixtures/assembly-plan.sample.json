@@ -1,0 +1,48 @@
+{
+  "idea_id": "saas-admin-with-google-auth",
+  "core_ref": "create-t3-app@7.39.x",
+  "seams": [
+    {
+      "seam_id": "auth.oauth_provider",
+      "action": "pick",
+      "ref": "google-oauth",
+      "content_hash": "sha256:placeholder",
+      "adapter": null,
+      "generated_file": null,
+      "confidence": 0.86,
+      "why": "exports GoogleProvider 符合 (config)=>OAuthConfig"
+    },
+    {
+      "seam_id": "data.crud_resource",
+      "action": "pick",
+      "ref": "user-crud-router",
+      "content_hash": null,
+      "adapter": null,
+      "generated_file": null,
+      "confidence": 0.78,
+      "why": "tRPC router 暴露 list/create/update/delete"
+    },
+    {
+      "seam_id": "ui.data_table",
+      "action": "adapt",
+      "ref": "shadcn-data-table",
+      "content_hash": null,
+      "adapter": "包一层把 tRPC 数据接到 columns",
+      "generated_file": null,
+      "confidence": 0.62,
+      "why": "组件齐但需适配数据源"
+    },
+    {
+      "seam_id": "report.custom_export",
+      "action": "generate",
+      "ref": null,
+      "content_hash": null,
+      "adapter": null,
+      "generated_file": "src/server/export/xlsx.ts",
+      "confidence": 0.5,
+      "why": "候选均不支持 xlsx 导出，自写"
+    }
+  ],
+  "synthesized": ["src/server/export/xlsx.ts"],
+  "budget": { "input_tok": 0, "output_tok": 0 }
+}

@@ -1,0 +1,59 @@
+{
+  "registry_item": {
+    "name": "google-oauth",
+    "type": "registry:lib",
+    "title": "Google OAuth Provider",
+    "description": "NextAuth v5 的 Google OAuth provider 配置",
+    "dependencies": [],
+    "registry_dependencies": [],
+    "files": [
+      {
+        "path": "files/google.ts",
+        "type": "registry:lib",
+        "target": "src/server/auth/providers/google.ts",
+        "hash": null
+      }
+    ],
+    "css_vars": {},
+    "env_vars": {
+      "AUTH_GOOGLE_ID": "",
+      "AUTH_GOOGLE_SECRET": ""
+    },
+    "meta_loom": {
+      "seam_id": "auth.oauth_provider",
+      "interface_sig": "export const googleProvider: OAuthConfig<GoogleProfile>",
+      "provenance": "platform",
+      "health": 1.0,
+      "content_hash": null,
+      "license": "MIT",
+      "ext_pkgs": []
+    }
+  },
+  "l0": {
+    "ref": "google-oauth",
+    "seam_id": "auth.oauth_provider",
+    "summary": "NextAuth v5 的 Google OAuth provider，读取 AUTH_GOOGLE_ID/SECRET 环境变量",
+    "deps": [],
+    "loc": 12,
+    "health": 1.0,
+    "provenance": "platform",
+    "content_hash": null
+  },
+  "l1": {
+    "ref": "google-oauth",
+    "content_hash": null,
+    "exports": [
+      {
+        "name": "googleProvider",
+        "signature": "const googleProvider: OAuthConfig<GoogleProfile>",
+        "kind": "const"
+      }
+    ],
+    "types": [],
+    "imports": ["next-auth/providers/google", "~/env"]
+  },
+  "barrel_snippet": {
+    "import": "import { googleProvider } from \"~/server/auth/providers/google\";",
+    "register": "googleProvider,"
+  }
+}

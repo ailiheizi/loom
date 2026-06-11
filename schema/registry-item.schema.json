@@ -1,0 +1,242 @@
+{
+  "$defs": {
+    "ExtPkg": {
+      "description": "候选依赖的外部 npm 包。",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "version": {
+          "description": "精确 pin 版本",
+          "title": "Version",
+          "type": "string"
+        },
+        "license": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "License"
+        }
+      },
+      "required": [
+        "name",
+        "version"
+      ],
+      "title": "ExtPkg",
+      "type": "object"
+    },
+    "FileType": {
+      "description": "复用 shadcn registry-item 的 type 枚举，作物化 hint。",
+      "enum": [
+        "registry:lib",
+        "registry:component",
+        "registry:hook",
+        "registry:page",
+        "registry:file",
+        "registry:ui",
+        "registry:block"
+      ],
+      "title": "FileType",
+      "type": "string"
+    },
+    "LoomMeta": {
+      "description": "塞进 shadcn meta.loom 的 Loom 私货，对 shadcn 工具链无害。",
+      "properties": {
+        "seam_id": {
+          "description": "该候选实现的 seam",
+          "title": "Seam Id",
+          "type": "string"
+        },
+        "interface_sig": {
+          "description": "导出符号的接口签名",
+          "title": "Interface Sig",
+          "type": "string"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance",
+          "default": "platform"
+        },
+        "health": {
+          "default": 1.0,
+          "description": "0-1，synthesized 初始低",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Health",
+          "type": "number"
+        },
+        "content_hash": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Content Hash"
+        },
+        "license": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "License"
+        },
+        "ext_pkgs": {
+          "items": {
+            "$ref": "#/$defs/ExtPkg"
+          },
+          "title": "Ext Pkgs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "seam_id",
+        "interface_sig"
+      ],
+      "title": "LoomMeta",
+      "type": "object"
+    },
+    "Provenance": {
+      "description": "候选来源，决定初始信任度。",
+      "enum": [
+        "platform",
+        "user",
+        "synthesized"
+      ],
+      "title": "Provenance",
+      "type": "string"
+    },
+    "RegistryFile": {
+      "description": "候选包含的一个文件。",
+      "properties": {
+        "path": {
+          "description": "候选内相对路径",
+          "title": "Path",
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/$defs/FileType",
+          "default": "registry:lib"
+        },
+        "target": {
+          "description": "物化到 core 的目标路径（Loom 强制必填，确定性物化）",
+          "title": "Target",
+          "type": "string"
+        },
+        "hash": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "sha256:<hex>，MVP 可空",
+          "title": "Hash"
+        }
+      },
+      "required": [
+        "path",
+        "target"
+      ],
+      "title": "RegistryFile",
+      "type": "object"
+    }
+  },
+  "description": "候选文件/组件，复用 shadcn registry-item.json 字段。",
+  "properties": {
+    "name": {
+      "title": "Name",
+      "type": "string"
+    },
+    "type": {
+      "$ref": "#/$defs/FileType",
+      "default": "registry:lib"
+    },
+    "title": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Title"
+    },
+    "description": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Description"
+    },
+    "dependencies": {
+      "description": "npm 包，pinned",
+      "items": {
+        "type": "string"
+      },
+      "title": "Dependencies",
+      "type": "array"
+    },
+    "registry_dependencies": {
+      "description": "依赖的其他 registry item",
+      "items": {
+        "type": "string"
+      },
+      "title": "Registry Dependencies",
+      "type": "array"
+    },
+    "files": {
+      "items": {
+        "$ref": "#/$defs/RegistryFile"
+      },
+      "title": "Files",
+      "type": "array"
+    },
+    "css_vars": {
+      "additionalProperties": true,
+      "title": "Css Vars",
+      "type": "object"
+    },
+    "env_vars": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "title": "Env Vars",
+      "type": "object"
+    },
+    "meta_loom": {
+      "$ref": "#/$defs/LoomMeta",
+      "description": "Loom 装配元数据"
+    }
+  },
+  "required": [
+    "name",
+    "meta_loom"
+  ],
+  "title": "RegistryItem",
+  "type": "object"
+}

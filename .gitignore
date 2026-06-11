@@ -1,0 +1,36 @@
+# ── 依赖（各语言各目录的 node_modules / venv）──
+node_modules/
+**/node_modules/
+.venv/
+**/.venv/
+__pycache__/
+**/__pycache__/
+*.egg-info/
+
+# ── 物化产物 / 工作目录（运行时生成，不入库）──
+.work/
+**/.next/
+**/generated/
+*.sqlite
+*.tsbuildinfo
+
+# ── 环境与密钥（绝不上传）──
+.env
+.env.*
+!.env.example
+*.key
+*-key.txt
+secrets.*
+
+# ── OMC / 会话 / 缓存 ──
+.omc/
+.claude/state/
+.claude/worktrees/
+
+# ── 锁文件（保留 pnpm-lock 但忽略大体积可重生成的）──
+# pnpm-lock.yaml 保留（可复现安装）
+
+# ── 系统 ──
+.DS_Store
+Thumbs.db
+*.log

@@ -1,0 +1,41 @@
+{
+  "description": "ts-morph getPreEmitDiagnostics 输出的一条结构化诊断。",
+  "properties": {
+    "file": {
+      "title": "File",
+      "type": "string"
+    },
+    "line": {
+      "title": "Line",
+      "type": "integer"
+    },
+    "column": {
+      "title": "Column",
+      "type": "integer"
+    },
+    "code": {
+      "description": "TS 错误码，如 2307",
+      "title": "Code",
+      "type": "integer"
+    },
+    "message": {
+      "title": "Message",
+      "type": "string"
+    },
+    "category": {
+      "default": "error",
+      "description": "error | warning",
+      "title": "Category",
+      "type": "string"
+    }
+  },
+  "required": [
+    "file",
+    "line",
+    "column",
+    "code",
+    "message"
+  ],
+  "title": "Diagnostic",
+  "type": "object"
+}

@@ -1,0 +1,75 @@
+{
+  "$defs": {
+    "L1Export": {
+      "description": "L1 导出符号签名（不含函数体）。",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "signature": {
+          "title": "Signature",
+          "type": "string"
+        },
+        "kind": {
+          "default": "function",
+          "description": "function | class | const | type",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "signature"
+      ],
+      "title": "L1Export",
+      "type": "object"
+    }
+  },
+  "description": "L1 接口签名层（多数 case AI 看这层即可定）。",
+  "properties": {
+    "ref": {
+      "title": "Ref",
+      "type": "string"
+    },
+    "content_hash": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Content Hash"
+    },
+    "exports": {
+      "items": {
+        "$ref": "#/$defs/L1Export"
+      },
+      "title": "Exports",
+      "type": "array"
+    },
+    "types": {
+      "description": "相关类型定义字符串",
+      "items": {
+        "type": "string"
+      },
+      "title": "Types",
+      "type": "array"
+    },
+    "imports": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Imports",
+      "type": "array"
+    }
+  },
+  "required": [
+    "ref"
+  ],
+  "title": "L1Signature",
+  "type": "object"
+}

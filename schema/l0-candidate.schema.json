@@ -1,0 +1,71 @@
+{
+  "$defs": {
+    "Provenance": {
+      "description": "候选来源，决定初始信任度。",
+      "enum": [
+        "platform",
+        "user",
+        "synthesized"
+      ],
+      "title": "Provenance",
+      "type": "string"
+    }
+  },
+  "description": "L0 候选清单项（粗筛，input 极省）。",
+  "properties": {
+    "ref": {
+      "description": "候选标识",
+      "title": "Ref",
+      "type": "string"
+    },
+    "seam_id": {
+      "title": "Seam Id",
+      "type": "string"
+    },
+    "summary": {
+      "description": "一句话能力意图摘要（召回命门）",
+      "title": "Summary",
+      "type": "string"
+    },
+    "deps": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Deps",
+      "type": "array"
+    },
+    "loc": {
+      "default": 0,
+      "title": "Loc",
+      "type": "integer"
+    },
+    "health": {
+      "default": 1.0,
+      "title": "Health",
+      "type": "number"
+    },
+    "provenance": {
+      "$ref": "#/$defs/Provenance",
+      "default": "platform"
+    },
+    "content_hash": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Content Hash"
+    }
+  },
+  "required": [
+    "ref",
+    "seam_id",
+    "summary"
+  ],
+  "title": "L0Candidate",
+  "type": "object"
+}

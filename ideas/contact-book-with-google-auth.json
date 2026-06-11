@@ -1,0 +1,29 @@
+{
+  "idea_id": "contact-book-with-google-auth",
+  "title": "带 Google 登录的通讯录",
+  "description": "一个通讯录应用：用户用 Google 账号登录，登录后对联系人（Contact）做增删改查，列表用数据表格展示，支持从 CSV 文件批量导入联系人。",
+  "ecosystem": "node-ts-web",
+  "core_ref": "create-t3-app@7.39.x",
+  "capability_intents": [
+    {
+      "intent": "用户能用 Google 账号 OAuth 登录",
+      "seam_id": "auth.oauth_provider",
+      "notes": "NextAuth v5 provider，接入 authConfig.providers[]"
+    },
+    {
+      "intent": "对 Contact 资源做增删改查（姓名=name，备注=description）",
+      "seam_id": "data.crud_resource",
+      "notes": "tRPC router，注册进 appRouter，字段映射到 Project model 的 name/description"
+    },
+    {
+      "intent": "用数据表格展示 Contact 列表",
+      "seam_id": "ui.data_table",
+      "notes": "React 表格组件，纯新增文件"
+    },
+    {
+      "intent": "从 CSV 文件批量导入联系人",
+      "seam_id": "data.bulk_import",
+      "notes": "候选池里没有 CSV 批量导入解析器，预期触发 WRITE_OWN(generate)"
+    }
+  ]
+}

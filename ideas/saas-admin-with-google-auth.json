@@ -1,0 +1,29 @@
+{
+  "idea_id": "saas-admin-with-google-auth",
+  "title": "带 Google OAuth 的 CRUD SaaS 管理后台",
+  "description": "一个管理后台：用户用 Google 账号登录，登录后能对一个业务资源（Project）做增删改查，列表用数据表格展示，并支持把列表导出。",
+  "ecosystem": "node-ts-web",
+  "core_ref": "create-t3-app@7.39.x",
+  "capability_intents": [
+    {
+      "intent": "用户能用 Google 账号 OAuth 登录",
+      "seam_id": "auth.oauth_provider",
+      "notes": "NextAuth v5 provider，接入 authConfig.providers[]"
+    },
+    {
+      "intent": "对 Project 资源做增删改查（list/get/create/update/delete）",
+      "seam_id": "data.crud_resource",
+      "notes": "tRPC router，注册进 appRouter，需要对应 prisma model"
+    },
+    {
+      "intent": "用数据表格展示 Project 列表",
+      "seam_id": "ui.data_table",
+      "notes": "React 表格组件，纯新增文件"
+    },
+    {
+      "intent": "把 Project 列表导出为 xlsx",
+      "seam_id": "report.custom_export",
+      "notes": "故意留的缺口：候选池里没有 xlsx 导出组件，预期触发 WRITE_OWN(generate)"
+    }
+  ]
+}

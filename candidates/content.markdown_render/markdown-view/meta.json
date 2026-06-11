@@ -1,0 +1,53 @@
+{
+  "registry_item": {
+    "name": "markdown-view",
+    "type": "registry:lib",
+    "title": "markdown-view",
+    "description": "React 组件 MarkdownView，把 markdown 文本渲染为 HTML（标题/列表/粗体/链接），零依赖正则实现",
+    "dependencies": [],
+    "registry_dependencies": [],
+    "files": [
+      {
+        "path": "files/markdown-view.tsx",
+        "type": "registry:lib",
+        "target": "src/app/_components/markdown-view.tsx",
+        "hash": null
+      }
+    ],
+    "css_vars": {},
+    "env_vars": {},
+    "meta_loom": {
+      "seam_id": "content.markdown_render",
+      "interface_sig": "function MarkdownView({ source }: MarkdownViewProps)",
+      "provenance": "platform",
+      "health": 0.7,
+      "content_hash": "sha256:852ef8d4ef115cab",
+      "license": "MIT",
+      "ext_pkgs": []
+    }
+  },
+  "l0": {
+    "ref": "markdown-view",
+    "seam_id": "content.markdown_render",
+    "summary": "React 组件 MarkdownView，把 markdown 文本渲染为 HTML（标题/列表/粗体/链接），零依赖正则实现",
+    "deps": [],
+    "loc": 66,
+    "health": 0.7,
+    "provenance": "platform",
+    "content_hash": "sha256:852ef8d4ef115cab"
+  },
+  "l1": {
+    "ref": "markdown-view",
+    "content_hash": "sha256:852ef8d4ef115cab",
+    "exports": [
+      {
+        "name": "MarkdownView",
+        "signature": "function MarkdownView({ source }: MarkdownViewProps)",
+        "kind": "component"
+      }
+    ],
+    "types": [],
+    "imports": []
+  },
+  "barrel_snippet": {}
+}

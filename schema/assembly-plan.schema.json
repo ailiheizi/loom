@@ -1,0 +1,151 @@
+{
+  "$defs": {
+    "SeamAction": {
+      "description": "AI 对每个 seam 的决策动作。",
+      "enum": [
+        "pick",
+        "adapt",
+        "generate",
+        "skip"
+      ],
+      "title": "SeamAction",
+      "type": "string"
+    },
+    "SelectionDecision": {
+      "description": "对一个 seam 的选择决策。",
+      "properties": {
+        "seam_id": {
+          "title": "Seam Id",
+          "type": "string"
+        },
+        "action": {
+          "$ref": "#/$defs/SeamAction"
+        },
+        "ref": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "pick/adapt 时选中的候选",
+          "title": "Ref"
+        },
+        "content_hash": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Content Hash"
+        },
+        "adapter": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "adapt 时需要的胶水说明（一句话）",
+          "title": "Adapter"
+        },
+        "generated_file": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "generate 时 AI 真写的文件路径（走单独通道）",
+          "title": "Generated File"
+        },
+        "confidence": {
+          "default": 0.0,
+          "description": "AI 自评",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "why": {
+          "default": "",
+          "description": "一句话理由，可截断",
+          "title": "Why",
+          "type": "string"
+        }
+      },
+      "required": [
+        "seam_id",
+        "action"
+      ],
+      "title": "SelectionDecision",
+      "type": "object"
+    },
+    "TokenBudget": {
+      "description": "client 回填用于 h* 埋点。",
+      "properties": {
+        "input_tok": {
+          "default": 0,
+          "title": "Input Tok",
+          "type": "integer"
+        },
+        "output_tok": {
+          "default": 0,
+          "title": "Output Tok",
+          "type": "integer"
+        }
+      },
+      "title": "TokenBudget",
+      "type": "object"
+    }
+  },
+  "description": "AI 输出的装配清单。",
+  "properties": {
+    "idea_id": {
+      "title": "Idea Id",
+      "type": "string"
+    },
+    "core_ref": {
+      "description": "如 create-t3-app@7.39.x",
+      "title": "Core Ref",
+      "type": "string"
+    },
+    "seams": {
+      "items": {
+        "$ref": "#/$defs/SelectionDecision"
+      },
+      "title": "Seams",
+      "type": "array"
+    },
+    "synthesized": {
+      "description": "generate 产物文件列表，过 Gate-1 后回流飞轮",
+      "items": {
+        "type": "string"
+      },
+      "title": "Synthesized",
+      "type": "array"
+    },
+    "budget": {
+      "$ref": "#/$defs/TokenBudget"
+    }
+  },
+  "required": [
+    "idea_id",
+    "core_ref"
+  ],
+  "title": "AssemblyPlan",
+  "type": "object"
+}

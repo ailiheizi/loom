@@ -1,0 +1,59 @@
+{
+  "registry_item": {
+    "name": "github-oauth",
+    "type": "registry:lib",
+    "title": "GitHub OAuth Provider",
+    "description": "NextAuth v5 的 GitHub OAuth provider 配置",
+    "dependencies": [],
+    "registry_dependencies": [],
+    "files": [
+      {
+        "path": "files/github.ts",
+        "type": "registry:lib",
+        "target": "src/server/auth/providers/github.ts",
+        "hash": null
+      }
+    ],
+    "css_vars": {},
+    "env_vars": {
+      "AUTH_GITHUB_ID": "",
+      "AUTH_GITHUB_SECRET": ""
+    },
+    "meta_loom": {
+      "seam_id": "auth.oauth_provider",
+      "interface_sig": "export const githubProvider: OAuthConfig<GitHubProfile>",
+      "provenance": "platform",
+      "health": 1.0,
+      "content_hash": null,
+      "license": "MIT",
+      "ext_pkgs": []
+    }
+  },
+  "l0": {
+    "ref": "github-oauth",
+    "seam_id": "auth.oauth_provider",
+    "summary": "NextAuth v5 的 GitHub OAuth provider，读取 AUTH_GITHUB_ID/SECRET 环境变量",
+    "deps": [],
+    "loc": 12,
+    "health": 1.0,
+    "provenance": "platform",
+    "content_hash": null
+  },
+  "l1": {
+    "ref": "github-oauth",
+    "content_hash": null,
+    "exports": [
+      {
+        "name": "githubProvider",
+        "signature": "const githubProvider: OAuthConfig<GitHubProfile>",
+        "kind": "const"
+      }
+    ],
+    "types": [],
+    "imports": ["next-auth/providers/github", "~/env"]
+  },
+  "barrel_snippet": {
+    "import": "import { githubProvider } from \"~/server/auth/providers/github\";",
+    "register": "githubProvider,"
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "registry_item": {
+    "name": "readonly-list",
+    "type": "registry:lib",
+    "title": "readonly-list",
+    "description": "只读列表 tRPC router（list+get，无写操作），适合只展示不编辑的资源，比全 CRUD 更轻更安全",
+    "dependencies": [],
+    "registry_dependencies": [],
+    "files": [
+      {
+        "path": "files/readonly-list.ts",
+        "type": "registry:lib",
+        "target": "src/server/api/routers/readonly-list.ts",
+        "hash": null
+      }
+    ],
+    "css_vars": {},
+    "env_vars": {},
+    "meta_loom": {
+      "seam_id": "data.crud_resource",
+      "interface_sig": "const readonlyListRouter = createTRPCRouter(",
+      "provenance": "platform",
+      "health": 0.7,
+      "content_hash": "sha256:de5da3672c5a099f",
+      "license": "MIT",
+      "ext_pkgs": [],
+      "requires_prisma_model": "Project"
+    }
+  },
+  "l0": {
+    "ref": "readonly-list",
+    "seam_id": "data.crud_resource",
+    "summary": "只读列表 tRPC router（list+get，无写操作），适合只展示不编辑的资源，比全 CRUD 更轻更安全",
+    "deps": [],
+    "loc": 19,
+    "health": 0.7,
+    "provenance": "platform",
+    "content_hash": "sha256:de5da3672c5a099f"
+  },
+  "l1": {
+    "ref": "readonly-list",
+    "content_hash": "sha256:de5da3672c5a099f",
+    "exports": [
+      {
+        "name": "readonlyListRouter",
+        "signature": "const readonlyListRouter = createTRPCRouter(",
+        "kind": "const"
+      }
+    ],
+    "types": [],
+    "imports": []
+  },
+  "barrel_snippet": {
+    "import": "import { readonlyListRouter } from \"~/server/api/routers/readonly-list\";",
+    "register": "crud_resource: readonlyListRouter,"
+  }
+}

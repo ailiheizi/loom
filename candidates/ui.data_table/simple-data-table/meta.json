@@ -1,0 +1,56 @@
+{
+  "registry_item": {
+    "name": "simple-data-table",
+    "type": "registry:lib",
+    "title": "Simple Data Table",
+    "description": "零外部依赖的 React 数据表格组件，使用原生 table 与 Tailwind 样式。",
+    "dependencies": [],
+    "registry_dependencies": [],
+    "files": [
+      {
+        "path": "files/data-table.tsx",
+        "type": "registry:lib",
+        "target": "src/app/_components/data-table.tsx",
+        "hash": null
+      }
+    ],
+    "css_vars": {},
+    "env_vars": {},
+    "meta_loom": {
+      "seam_id": "ui.data_table",
+      "interface_sig": "export function DataTable(props: { columns: { key: string; header: string }[]; rows: Record<string, unknown>[] }): JSX.Element",
+      "provenance": "platform",
+      "health": 1.0,
+      "content_hash": null,
+      "license": "MIT",
+      "ext_pkgs": []
+    }
+  },
+  "l0": {
+    "ref": "simple-data-table",
+    "seam_id": "ui.data_table",
+    "summary": "零外部依赖的受控 React 数据表格，适合直接放入 Next.js App Router 的 src/app/_components/。",
+    "deps": [],
+    "loc": 48,
+    "health": 1.0,
+    "provenance": "platform",
+    "content_hash": null
+  },
+  "l1": {
+    "ref": "simple-data-table",
+    "content_hash": null,
+    "exports": [
+      {
+        "name": "DataTable",
+        "signature": "function DataTable(props: { columns: { key: string; header: string }[]; rows: Record<string, unknown>[] }): JSX.Element",
+        "kind": "function"
+      }
+    ],
+    "types": [
+      "type DataTableColumn = { key: string; header: string }",
+      "type DataTableProps = { columns: DataTableColumn[]; rows: Record<string, unknown>[] }"
+    ],
+    "imports": []
+  },
+  "barrel_snippet": {}
+}
