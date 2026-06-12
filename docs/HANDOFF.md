@@ -85,7 +85,21 @@ M5=docs 步骤8：合成/上传产物回流入池被复用、健康度闭环（d
 - 新增 `data.crud_resource/readonly-list`（只读列表 list+get，轻量 CRUD 变体，过 gate ✓）
 - 现状：auth 3 候选（google/github/credentials）、crud 3 候选（project-crud/generic-factory/readonly-list）、ui 2、其余各 1。**10/11 过 t3 gate**，唯一✗=tanstack（需外部依赖）。
 - 价值：① 登录/CRUD 两个最高频 seam 有了真竞争，AI 选择更贴合（全CRUD vs 只读、OAuth vs 密码）；② 验证了"守门保驾扩池"流程——不再出现坏候选混入。
-## 演进方向探索 + 复杂度梯度原型（2026-06-11）
+## ✅ AI 拆解上传飞轮闭环（2026-06-11，"前人种树"成立）
+`platform/analyze_repo.py`：飞轮自举入口。输入真实 repo → 扫 TS/TSX → tree-sitter 抽 export 签名 → AI(deepseek 单轮 JSON) 判断每个文件对齐哪个 loom 接缝(或 skip) → 对齐的 ingest 入池(provenance=user) → **入池后自动跑 verify 质量门，未过 t3 gate 的自动撤回**（防污染闭环）。
+
+**端到端验证（用 t3-base 当贡献 repo）**：
+- AI 拆解 14 文件 → 对齐 3 个接缝（root.ts→app-router、post.ts→post-router、config.ts→auth-config）
+- 质量门自检：**post-router 过 gate 留池；app-router/auth-config（宿主文件，AI 误判）未过门自动撤回**
+- 结果：池 11→12，新增 post-router（provenance=user, health=0.7）是飞轮自动产生的合格候选，非手写
+- **意义**：「前人种树后人乘凉」成立——贡献 repo 被 AI 自动拆成接缝候选，后来的想法可 pick；且**贡献者拆错也不污染池**（质量门自动拦截毒树，零人工）。AI 拆解有对有错（router 对、宿主文件误判），质量门是命脉。
+- 用法：`LOOM_LLM_PROVIDER=deepseek LOOM_LLM_API_KEY=sk-... uv run python analyze_repo.py <repo_dir> [--dry-run]`
+- 诚实推迟：多语言、跨文件依赖、新接缝自动发现、大规模 repo；AI 对齐靠签名摘要（不读全文，省 input）。
+
+## 三个演进设想的落地状态（用户愿景）
+- ② 复杂度梯度导航：✅ 原型验证（saas-admin 3 档全收敛）
+- ① AI 拆解上传飞轮：✅ 闭环跑通（analyze_repo + 自动 verify 撤回）
+- ③ 前端 sha 预览：未做（workflow 评组件级可行/整站级难，推迟）
 用户提出 3 个演进设想（workflow 多视角分析）：① AI 拆解上传飞轮自举（前人种树后人乘凉）② 复杂度梯度导航（自顶向下渐进选择）③ 前端 sha 预览。综合判断：**都与现有引擎互补、非推倒重来**；②最该先做（瓶颈是内容策展非技术）、①价值最高（瓶颈是质量+信任，地基 verify门/健康度飞轮已有）、③组件级可行整站级难。
 
 **复杂度梯度原型（②，已验证成立）**：同一"SaaS 后台"想法造 3 档变体 `ideas/variants/saas-admin-{lite,std,full}.json`，用现有引擎各组装一次，**全部 round-0 收敛**，产物复杂度真实递增：

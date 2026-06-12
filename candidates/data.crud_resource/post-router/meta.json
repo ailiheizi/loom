@@ -1,0 +1,56 @@
+{
+  "registry_item": {
+    "name": "post-router",
+    "type": "registry:lib",
+    "title": "post-router",
+    "description": "Defines the post CRUD router",
+    "dependencies": [],
+    "registry_dependencies": [],
+    "files": [
+      {
+        "path": "files/post.ts",
+        "type": "registry:lib",
+        "target": "src/server/api/routers/post.ts",
+        "hash": null
+      }
+    ],
+    "css_vars": {},
+    "env_vars": {},
+    "meta_loom": {
+      "seam_id": "data.crud_resource",
+      "interface_sig": "const postRouter = createTRPCRouter(",
+      "provenance": "user",
+      "health": 0.7,
+      "content_hash": "sha256:9c487f8344341061",
+      "license": "MIT",
+      "ext_pkgs": []
+    }
+  },
+  "l0": {
+    "ref": "post-router",
+    "seam_id": "data.crud_resource",
+    "summary": "Defines the post CRUD router",
+    "deps": [],
+    "loc": 41,
+    "health": 0.7,
+    "provenance": "user",
+    "content_hash": "sha256:9c487f8344341061"
+  },
+  "l1": {
+    "ref": "post-router",
+    "content_hash": "sha256:9c487f8344341061",
+    "exports": [
+      {
+        "name": "postRouter",
+        "signature": "const postRouter = createTRPCRouter(",
+        "kind": "const"
+      }
+    ],
+    "types": [],
+    "imports": []
+  },
+  "barrel_snippet": {
+    "import": "import { postRouter } from \"~/server/api/routers/post\";",
+    "register": "crud_resource: postRouter,"
+  }
+}
