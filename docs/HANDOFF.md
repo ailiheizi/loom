@@ -1,5 +1,26 @@
 # Loom M1 实施进度交接
 
+> ## ⏩ 新会话接续点（2026-06-12，最新）
+> **agent-native 愿景已定向 + 验池实验跑完 = GO。本批改动待 commit。**
+>
+> **网络坑**：直连 GitHub 常 `Connection reset`。**用代理 push**：
+> `git -c http.proxy=http://127.0.0.1:7890 -c https.proxy=http://127.0.0.1:7890 push origin master`
+>
+> **方向（用户已拍板，详见 `docs/agent-native-vision-assessment.md`）**：Loom 演进为装进 Claude Code/codex 的对话式组装服务。① LLM 翻转到 client 侧（宿主 agent 做对话/判断），deepseek 弃用、repair.ts 的 client 侧 LLM 待移除 ② 架构梯度降级为「候选级梯度」（每 seam 给 2-3 真实候选让架构师挑）③ 先验池再搭 server ④ 目标用户=架构师。
+>
+> **验池实验已完成 = GO（强信号），结论存 `docs/pool-density-experiment.md`**：
+> - 灌密 ui.data_table 2→8、report.custom_export 1→6（11 新候选零依赖，100% 过 t3 严格质量门）
+> - 离线可选度 2.00→3.17、可挑 seam 3/6→4/6
+> - 双臂 h\*=0.058：组装 output=340/0修复/收敛 vs 从零 output=7553/4修复/未收敛。组装成本约 1/17，且从零在该池密度下做不出能编译项目
+> - 顺带修真 bug：run_select.py anthropic 惰性导入；client/src/llm.ts 加 deepseek/OpenAI 兼容分支（为 LLM 可插拔铺路）
+>
+> **下一步 = 第二步：候选级梯度呈现**（检索给每 seam 2-3 真实候选，agent 摊给架构师挑）→ 第三步 MCP server。
+>
+> **CI（github.com/ailiheizi/loom/actions）= ✅ 全绿**（commit c862792，5 job，per-job 路径过滤 + workflow_dispatch 已上）。
+>
+> ---
+
+
 > 给下一个会话：直接读这份 + `docs/implementation-plan.md`，从「未完成任务」继续。
 > 当前阶段：M1 完成 + M2 止损闸门跑出可归因结论 + M3 真检索后端骨架（待真 embedding 渠道）。
 

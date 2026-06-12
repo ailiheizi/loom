@@ -1,0 +1,58 @@
+{
+  "registry_item": {
+    "name": "clipboard-export-fn",
+    "type": "registry:lib",
+    "title": "clipboard-export-fn",
+    "description": "rowsToClipboardText/copyToClipboard 复制 CSV 到剪贴板，浏览器原生 clipboard API。零依赖。",
+    "dependencies": [],
+    "registry_dependencies": [],
+    "files": [
+      {
+        "path": "files/clipboard-export.ts",
+        "type": "registry:lib",
+        "target": "src/server/export/clipboard-export.ts",
+        "hash": null
+      }
+    ],
+    "css_vars": {},
+    "env_vars": {},
+    "meta_loom": {
+      "seam_id": "report.custom_export",
+      "interface_sig": "function rowsToClipboardText(rows: ExportRow[], columns?: string[]): string",
+      "provenance": "platform",
+      "health": 0.7,
+      "content_hash": "sha256:292b2576df9330a9",
+      "license": "MIT",
+      "ext_pkgs": []
+    }
+  },
+  "l0": {
+    "ref": "clipboard-export-fn",
+    "seam_id": "report.custom_export",
+    "summary": "rowsToClipboardText/copyToClipboard 复制 CSV 到剪贴板，浏览器原生 clipboard API。零依赖。",
+    "deps": [],
+    "loc": 34,
+    "health": 0.7,
+    "provenance": "platform",
+    "content_hash": "sha256:292b2576df9330a9"
+  },
+  "l1": {
+    "ref": "clipboard-export-fn",
+    "content_hash": "sha256:292b2576df9330a9",
+    "exports": [
+      {
+        "name": "rowsToClipboardText",
+        "signature": "function rowsToClipboardText(rows: ExportRow[], columns?: string[]): string",
+        "kind": "function"
+      },
+      {
+        "name": "copyToClipboard",
+        "signature": "async function copyToClipboard(rows: ExportRow[], columns?: string[]): Promise<boolean>",
+        "kind": "function"
+      }
+    ],
+    "types": [],
+    "imports": []
+  },
+  "barrel_snippet": {}
+}

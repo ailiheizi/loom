@@ -1,0 +1,53 @@
+{
+  "registry_item": {
+    "name": "paginated-data-table",
+    "type": "registry:lib",
+    "title": "paginated-data-table",
+    "description": "客户端分页数据表格，可选 pageSize，底部上一页/下一页控件。零依赖。",
+    "dependencies": [],
+    "registry_dependencies": [],
+    "files": [
+      {
+        "path": "files/data-table.tsx",
+        "type": "registry:lib",
+        "target": "src/app/_components/data-table.tsx",
+        "hash": null
+      }
+    ],
+    "css_vars": {},
+    "env_vars": {},
+    "meta_loom": {
+      "seam_id": "ui.data_table",
+      "interface_sig": "function DataTable({ columns, rows, pageSize = 10 }: DataTableProps)",
+      "provenance": "platform",
+      "health": 0.7,
+      "content_hash": "sha256:128656cff9d4db08",
+      "license": "MIT",
+      "ext_pkgs": []
+    }
+  },
+  "l0": {
+    "ref": "paginated-data-table",
+    "seam_id": "ui.data_table",
+    "summary": "客户端分页数据表格，可选 pageSize，底部上一页/下一页控件。零依赖。",
+    "deps": [],
+    "loc": 92,
+    "health": 0.7,
+    "provenance": "platform",
+    "content_hash": "sha256:128656cff9d4db08"
+  },
+  "l1": {
+    "ref": "paginated-data-table",
+    "content_hash": "sha256:128656cff9d4db08",
+    "exports": [
+      {
+        "name": "DataTable",
+        "signature": "function DataTable({ columns, rows, pageSize = 10 }: DataTableProps)",
+        "kind": "component"
+      }
+    ],
+    "types": [],
+    "imports": []
+  },
+  "barrel_snippet": {}
+}

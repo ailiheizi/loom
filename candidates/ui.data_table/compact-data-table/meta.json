@@ -1,0 +1,53 @@
+{
+  "registry_item": {
+    "name": "compact-data-table",
+    "type": "registry:lib",
+    "title": "compact-data-table",
+    "description": "紧凑只读数据表格，小行距密集展示，适合 dashboard 卡片内。纯展示无 state。",
+    "dependencies": [],
+    "registry_dependencies": [],
+    "files": [
+      {
+        "path": "files/data-table.tsx",
+        "type": "registry:lib",
+        "target": "src/app/_components/data-table.tsx",
+        "hash": null
+      }
+    ],
+    "css_vars": {},
+    "env_vars": {},
+    "meta_loom": {
+      "seam_id": "ui.data_table",
+      "interface_sig": "function DataTable({ columns, rows }: DataTableProps)",
+      "provenance": "platform",
+      "health": 0.7,
+      "content_hash": "sha256:e0bb47265633c998",
+      "license": "MIT",
+      "ext_pkgs": []
+    }
+  },
+  "l0": {
+    "ref": "compact-data-table",
+    "seam_id": "ui.data_table",
+    "summary": "紧凑只读数据表格，小行距密集展示，适合 dashboard 卡片内。纯展示无 state。",
+    "deps": [],
+    "loc": 53,
+    "health": 0.7,
+    "provenance": "platform",
+    "content_hash": "sha256:e0bb47265633c998"
+  },
+  "l1": {
+    "ref": "compact-data-table",
+    "content_hash": "sha256:e0bb47265633c998",
+    "exports": [
+      {
+        "name": "DataTable",
+        "signature": "function DataTable({ columns, rows }: DataTableProps)",
+        "kind": "component"
+      }
+    ],
+    "types": [],
+    "imports": []
+  },
+  "barrel_snippet": {}
+}

@@ -1,0 +1,53 @@
+{
+  "registry_item": {
+    "name": "filterable-data-table",
+    "type": "registry:lib",
+    "title": "filterable-data-table",
+    "description": "带全局文本筛选的数据表格，顶部搜索框跨列大小写不敏感匹配。零依赖。",
+    "dependencies": [],
+    "registry_dependencies": [],
+    "files": [
+      {
+        "path": "files/data-table.tsx",
+        "type": "registry:lib",
+        "target": "src/app/_components/data-table.tsx",
+        "hash": null
+      }
+    ],
+    "css_vars": {},
+    "env_vars": {},
+    "meta_loom": {
+      "seam_id": "ui.data_table",
+      "interface_sig": "function DataTable({ columns, rows }: DataTableProps)",
+      "provenance": "platform",
+      "health": 0.7,
+      "content_hash": "sha256:7f507b7fc197bbb3",
+      "license": "MIT",
+      "ext_pkgs": []
+    }
+  },
+  "l0": {
+    "ref": "filterable-data-table",
+    "seam_id": "ui.data_table",
+    "summary": "带全局文本筛选的数据表格，顶部搜索框跨列大小写不敏感匹配。零依赖。",
+    "deps": [],
+    "loc": 82,
+    "health": 0.7,
+    "provenance": "platform",
+    "content_hash": "sha256:7f507b7fc197bbb3"
+  },
+  "l1": {
+    "ref": "filterable-data-table",
+    "content_hash": "sha256:7f507b7fc197bbb3",
+    "exports": [
+      {
+        "name": "DataTable",
+        "signature": "function DataTable({ columns, rows }: DataTableProps)",
+        "kind": "component"
+      }
+    ],
+    "types": [],
+    "imports": []
+  },
+  "barrel_snippet": {}
+}

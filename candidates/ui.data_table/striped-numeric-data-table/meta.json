@@ -1,0 +1,53 @@
+{
+  "registry_item": {
+    "name": "striped-numeric-data-table",
+    "type": "registry:lib",
+    "title": "striped-numeric-data-table",
+    "description": "斑马纹数据表格，数字列自动右对齐，适合财务/报表只读展示。零依赖。",
+    "dependencies": [],
+    "registry_dependencies": [],
+    "files": [
+      {
+        "path": "files/data-table.tsx",
+        "type": "registry:lib",
+        "target": "src/app/_components/data-table.tsx",
+        "hash": null
+      }
+    ],
+    "css_vars": {},
+    "env_vars": {},
+    "meta_loom": {
+      "seam_id": "ui.data_table",
+      "interface_sig": "function DataTable({ columns, rows }: DataTableProps)",
+      "provenance": "platform",
+      "health": 0.7,
+      "content_hash": "sha256:ad571ef9f6e7e4b3",
+      "license": "MIT",
+      "ext_pkgs": []
+    }
+  },
+  "l0": {
+    "ref": "striped-numeric-data-table",
+    "seam_id": "ui.data_table",
+    "summary": "斑马纹数据表格，数字列自动右对齐，适合财务/报表只读展示。零依赖。",
+    "deps": [],
+    "loc": 74,
+    "health": 0.7,
+    "provenance": "platform",
+    "content_hash": "sha256:ad571ef9f6e7e4b3"
+  },
+  "l1": {
+    "ref": "striped-numeric-data-table",
+    "content_hash": "sha256:ad571ef9f6e7e4b3",
+    "exports": [
+      {
+        "name": "DataTable",
+        "signature": "function DataTable({ columns, rows }: DataTableProps)",
+        "kind": "component"
+      }
+    ],
+    "types": [],
+    "imports": []
+  },
+  "barrel_snippet": {}
+}

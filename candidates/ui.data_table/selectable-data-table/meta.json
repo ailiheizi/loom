@@ -1,0 +1,53 @@
+{
+  "registry_item": {
+    "name": "selectable-data-table",
+    "type": "registry:lib",
+    "title": "selectable-data-table",
+    "description": "可多选行的数据表格，左侧复选框列，支持全选/单选 + 已选计数。零依赖。",
+    "dependencies": [],
+    "registry_dependencies": [],
+    "files": [
+      {
+        "path": "files/data-table.tsx",
+        "type": "registry:lib",
+        "target": "src/app/_components/data-table.tsx",
+        "hash": null
+      }
+    ],
+    "css_vars": {},
+    "env_vars": {},
+    "meta_loom": {
+      "seam_id": "ui.data_table",
+      "interface_sig": "function DataTable({ columns, rows }: DataTableProps)",
+      "provenance": "platform",
+      "health": 0.7,
+      "content_hash": "sha256:f14e6cee6cb29783",
+      "license": "MIT",
+      "ext_pkgs": []
+    }
+  },
+  "l0": {
+    "ref": "selectable-data-table",
+    "seam_id": "ui.data_table",
+    "summary": "可多选行的数据表格，左侧复选框列，支持全选/单选 + 已选计数。零依赖。",
+    "deps": [],
+    "loc": 103,
+    "health": 0.7,
+    "provenance": "platform",
+    "content_hash": "sha256:f14e6cee6cb29783"
+  },
+  "l1": {
+    "ref": "selectable-data-table",
+    "content_hash": "sha256:f14e6cee6cb29783",
+    "exports": [
+      {
+        "name": "DataTable",
+        "signature": "function DataTable({ columns, rows }: DataTableProps)",
+        "kind": "component"
+      }
+    ],
+    "types": [],
+    "imports": []
+  },
+  "barrel_snippet": {}
+}

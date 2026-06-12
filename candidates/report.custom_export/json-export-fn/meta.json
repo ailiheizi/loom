@@ -1,0 +1,58 @@
+{
+  "registry_item": {
+    "name": "json-export-fn",
+    "type": "registry:lib",
+    "title": "json-export-fn",
+    "description": "rowsToJson/toJsonBlob 把行数据导出为 pretty JSON，支持列投影。零依赖。",
+    "dependencies": [],
+    "registry_dependencies": [],
+    "files": [
+      {
+        "path": "files/json-export.ts",
+        "type": "registry:lib",
+        "target": "src/server/export/json-export.ts",
+        "hash": null
+      }
+    ],
+    "css_vars": {},
+    "env_vars": {},
+    "meta_loom": {
+      "seam_id": "report.custom_export",
+      "interface_sig": "function rowsToJson(rows: ExportRow[], columns?: string[]): string",
+      "provenance": "platform",
+      "health": 0.7,
+      "content_hash": "sha256:37bad58d7c879057",
+      "license": "MIT",
+      "ext_pkgs": []
+    }
+  },
+  "l0": {
+    "ref": "json-export-fn",
+    "seam_id": "report.custom_export",
+    "summary": "rowsToJson/toJsonBlob 把行数据导出为 pretty JSON，支持列投影。零依赖。",
+    "deps": [],
+    "loc": 23,
+    "health": 0.7,
+    "provenance": "platform",
+    "content_hash": "sha256:37bad58d7c879057"
+  },
+  "l1": {
+    "ref": "json-export-fn",
+    "content_hash": "sha256:37bad58d7c879057",
+    "exports": [
+      {
+        "name": "rowsToJson",
+        "signature": "function rowsToJson(rows: ExportRow[], columns?: string[]): string",
+        "kind": "function"
+      },
+      {
+        "name": "toJsonBlob",
+        "signature": "function toJsonBlob(rows: ExportRow[], columns?: string[]): Blob",
+        "kind": "function"
+      }
+    ],
+    "types": [],
+    "imports": []
+  },
+  "barrel_snippet": {}
+}

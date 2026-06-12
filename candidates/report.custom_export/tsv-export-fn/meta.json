@@ -1,0 +1,58 @@
+{
+  "registry_item": {
+    "name": "tsv-export-fn",
+    "type": "registry:lib",
+    "title": "tsv-export-fn",
+    "description": "rowsToTsv/toTsvBlob 制表符分隔导出，Excel/Sheets 粘贴友好。零依赖。",
+    "dependencies": [],
+    "registry_dependencies": [],
+    "files": [
+      {
+        "path": "files/tsv-export.ts",
+        "type": "registry:lib",
+        "target": "src/server/export/tsv-export.ts",
+        "hash": null
+      }
+    ],
+    "css_vars": {},
+    "env_vars": {},
+    "meta_loom": {
+      "seam_id": "report.custom_export",
+      "interface_sig": "function rowsToTsv(rows: ExportRow[], columns?: string[]): string",
+      "provenance": "platform",
+      "health": 0.7,
+      "content_hash": "sha256:7195f3f380d14e11",
+      "license": "MIT",
+      "ext_pkgs": []
+    }
+  },
+  "l0": {
+    "ref": "tsv-export-fn",
+    "seam_id": "report.custom_export",
+    "summary": "rowsToTsv/toTsvBlob 制表符分隔导出，Excel/Sheets 粘贴友好。零依赖。",
+    "deps": [],
+    "loc": 28,
+    "health": 0.7,
+    "provenance": "platform",
+    "content_hash": "sha256:7195f3f380d14e11"
+  },
+  "l1": {
+    "ref": "tsv-export-fn",
+    "content_hash": "sha256:7195f3f380d14e11",
+    "exports": [
+      {
+        "name": "rowsToTsv",
+        "signature": "function rowsToTsv(rows: ExportRow[], columns?: string[]): string",
+        "kind": "function"
+      },
+      {
+        "name": "toTsvBlob",
+        "signature": "function toTsvBlob(rows: ExportRow[], columns?: string[]): Blob",
+        "kind": "function"
+      }
+    ],
+    "types": [],
+    "imports": []
+  },
+  "barrel_snippet": {}
+}

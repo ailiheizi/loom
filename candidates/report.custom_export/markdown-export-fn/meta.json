@@ -1,0 +1,58 @@
+{
+  "registry_item": {
+    "name": "markdown-export-fn",
+    "type": "registry:lib",
+    "title": "markdown-export-fn",
+    "description": "rowsToMarkdown/toMarkdownBlob 导出 GFM 表格，适合贴进 README/issue/文档。零依赖。",
+    "dependencies": [],
+    "registry_dependencies": [],
+    "files": [
+      {
+        "path": "files/markdown-export.ts",
+        "type": "registry:lib",
+        "target": "src/server/export/markdown-export.ts",
+        "hash": null
+      }
+    ],
+    "css_vars": {},
+    "env_vars": {},
+    "meta_loom": {
+      "seam_id": "report.custom_export",
+      "interface_sig": "function rowsToMarkdown(rows: ExportRow[], columns?: string[]): string",
+      "provenance": "platform",
+      "health": 0.7,
+      "content_hash": "sha256:593919b1cb0152fa",
+      "license": "MIT",
+      "ext_pkgs": []
+    }
+  },
+  "l0": {
+    "ref": "markdown-export-fn",
+    "seam_id": "report.custom_export",
+    "summary": "rowsToMarkdown/toMarkdownBlob 导出 GFM 表格，适合贴进 README/issue/文档。零依赖。",
+    "deps": [],
+    "loc": 29,
+    "health": 0.7,
+    "provenance": "platform",
+    "content_hash": "sha256:593919b1cb0152fa"
+  },
+  "l1": {
+    "ref": "markdown-export-fn",
+    "content_hash": "sha256:593919b1cb0152fa",
+    "exports": [
+      {
+        "name": "rowsToMarkdown",
+        "signature": "function rowsToMarkdown(rows: ExportRow[], columns?: string[]): string",
+        "kind": "function"
+      },
+      {
+        "name": "toMarkdownBlob",
+        "signature": "function toMarkdownBlob(rows: ExportRow[], columns?: string[]): Blob",
+        "kind": "function"
+      }
+    ],
+    "types": [],
+    "imports": []
+  },
+  "barrel_snippet": {}
+}

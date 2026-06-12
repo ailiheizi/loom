@@ -1,0 +1,58 @@
+{
+  "registry_item": {
+    "name": "excel-csv-export-fn",
+    "type": "registry:lib",
+    "title": "excel-csv-export-fn",
+    "description": "rowsToExcelCsv/toExcelCsvBlob 带 UTF-8 BOM 的 CSV，解决 Excel 中文乱码。零依赖。",
+    "dependencies": [],
+    "registry_dependencies": [],
+    "files": [
+      {
+        "path": "files/excel-csv-export.ts",
+        "type": "registry:lib",
+        "target": "src/server/export/excel-csv-export.ts",
+        "hash": null
+      }
+    ],
+    "css_vars": {},
+    "env_vars": {},
+    "meta_loom": {
+      "seam_id": "report.custom_export",
+      "interface_sig": "function rowsToExcelCsv(rows: ExportRow[], columns?: string[]): string",
+      "provenance": "platform",
+      "health": 0.7,
+      "content_hash": "sha256:e2537d1b69aa9463",
+      "license": "MIT",
+      "ext_pkgs": []
+    }
+  },
+  "l0": {
+    "ref": "excel-csv-export-fn",
+    "seam_id": "report.custom_export",
+    "summary": "rowsToExcelCsv/toExcelCsvBlob 带 UTF-8 BOM 的 CSV，解决 Excel 中文乱码。零依赖。",
+    "deps": [],
+    "loc": 33,
+    "health": 0.7,
+    "provenance": "platform",
+    "content_hash": "sha256:e2537d1b69aa9463"
+  },
+  "l1": {
+    "ref": "excel-csv-export-fn",
+    "content_hash": "sha256:e2537d1b69aa9463",
+    "exports": [
+      {
+        "name": "rowsToExcelCsv",
+        "signature": "function rowsToExcelCsv(rows: ExportRow[], columns?: string[]): string",
+        "kind": "function"
+      },
+      {
+        "name": "toExcelCsvBlob",
+        "signature": "function toExcelCsvBlob(rows: ExportRow[], columns?: string[]): Blob",
+        "kind": "function"
+      }
+    ],
+    "types": [],
+    "imports": []
+  },
+  "barrel_snippet": {}
+}

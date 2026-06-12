@@ -13,8 +13,6 @@ import json
 import os
 from pathlib import Path
 
-import anthropic
-
 import loom_contracts as c
 from load_candidates import Candidate, load_candidates, find_candidate
 
@@ -211,6 +209,8 @@ def run_selection(idea_path: Path, use_retrieve: bool = False, top_k: int = 3) -
     # provider 分支：deepseek（OpenAI 兼容，JSON 输出）vs anthropic（原生 tool-use）
     if os.environ.get("LOOM_LLM_PROVIDER", "").lower() == "deepseek":
         return _select_via_openai(user_msg, idea, metrics)
+
+    import anthropic  # 惰性导入：仅 anthropic provider 才依赖此包
 
     client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
     messages: list[dict] = [{"role": "user", "content": user_msg}]

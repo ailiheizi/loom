@@ -1,0 +1,53 @@
+{
+  "registry_item": {
+    "name": "sortable-data-table",
+    "type": "registry:lib",
+    "title": "sortable-data-table",
+    "description": "可排序数据表格，点击表头在 asc/desc/无序间循环，零依赖（不引 tanstack）。",
+    "dependencies": [],
+    "registry_dependencies": [],
+    "files": [
+      {
+        "path": "files/data-table.tsx",
+        "type": "registry:lib",
+        "target": "src/app/_components/data-table.tsx",
+        "hash": null
+      }
+    ],
+    "css_vars": {},
+    "env_vars": {},
+    "meta_loom": {
+      "seam_id": "ui.data_table",
+      "interface_sig": "function DataTable({ columns, rows }: DataTableProps)",
+      "provenance": "platform",
+      "health": 0.7,
+      "content_hash": "sha256:4ca2d8c1552b735d",
+      "license": "MIT",
+      "ext_pkgs": []
+    }
+  },
+  "l0": {
+    "ref": "sortable-data-table",
+    "seam_id": "ui.data_table",
+    "summary": "可排序数据表格，点击表头在 asc/desc/无序间循环，零依赖（不引 tanstack）。",
+    "deps": [],
+    "loc": 96,
+    "health": 0.7,
+    "provenance": "platform",
+    "content_hash": "sha256:4ca2d8c1552b735d"
+  },
+  "l1": {
+    "ref": "sortable-data-table",
+    "content_hash": "sha256:4ca2d8c1552b735d",
+    "exports": [
+      {
+        "name": "DataTable",
+        "signature": "function DataTable({ columns, rows }: DataTableProps)",
+        "kind": "component"
+      }
+    ],
+    "types": [],
+    "imports": []
+  },
+  "barrel_snippet": {}
+}
