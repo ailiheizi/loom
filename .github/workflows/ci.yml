@@ -48,7 +48,9 @@ jobs:
           cache: pnpm
           cache-dependency-path: client/pnpm-lock.yaml
       - name: Install deps
-        run: pnpm install --frozen-lockfile
+        # --ignore-scripts：跳过 esbuild 等 build script（typecheck 不需要它们，
+        # 且 pnpm9 默认拒绝未批准 build 会让 install 非零退出 ERR_PNPM_IGNORED_BUILDS）
+        run: pnpm install --frozen-lockfile --ignore-scripts
       - name: tsc --noEmit
         run: node node_modules/typescript/bin/tsc --noEmit
 
