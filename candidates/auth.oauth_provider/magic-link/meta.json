@@ -1,0 +1,57 @@
+{
+  "registry_item": {
+    "name": "magic-link",
+    "type": "registry:lib",
+    "title": "magic-link",
+    "description": "Magic-link 风格邮箱登录（Credentials 实现，零依赖）。邮箱+验证码登录，加入 providers[]。",
+    "dependencies": [],
+    "registry_dependencies": [],
+    "files": [
+      {
+        "path": "files/magic-link.ts",
+        "type": "registry:lib",
+        "target": "src/server/auth/providers/magic-link.ts",
+        "hash": null
+      }
+    ],
+    "css_vars": {},
+    "env_vars": {},
+    "meta_loom": {
+      "seam_id": "auth.oauth_provider",
+      "interface_sig": "const magicLinkProvider = CredentialsProvider(",
+      "provenance": "platform",
+      "health": 0.7,
+      "content_hash": "sha256:4e0c7f16f683d634",
+      "license": "MIT",
+      "ext_pkgs": [],
+      "tradeoffs": "邮箱+验证码登录（Credentials 实现，零依赖）。适合无第三方 OAuth 的自主登录；验证码校验是骨架，生产需接邮件服务+存储。"
+    }
+  },
+  "l0": {
+    "ref": "magic-link",
+    "seam_id": "auth.oauth_provider",
+    "summary": "Magic-link 风格邮箱登录（Credentials 实现，零依赖）。邮箱+验证码登录，加入 providers[]。",
+    "deps": [],
+    "loc": 27,
+    "health": 0.7,
+    "provenance": "platform",
+    "content_hash": "sha256:4e0c7f16f683d634"
+  },
+  "l1": {
+    "ref": "magic-link",
+    "content_hash": "sha256:4e0c7f16f683d634",
+    "exports": [
+      {
+        "name": "magicLinkProvider",
+        "signature": "const magicLinkProvider = CredentialsProvider(",
+        "kind": "const"
+      }
+    ],
+    "types": [],
+    "imports": []
+  },
+  "barrel_snippet": {
+    "import": "import { magicLinkProvider } from \"~/server/auth/providers/magic-link\";",
+    "register": "magicLinkProvider,"
+  }
+}

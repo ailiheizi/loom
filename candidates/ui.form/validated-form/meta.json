@@ -1,0 +1,54 @@
+{
+  "registry_item": {
+    "name": "validated-form",
+    "type": "registry:lib",
+    "title": "validated-form",
+    "description": "带必填校验的受控表单，required 字段为空阻止提交并显错。零依赖。",
+    "dependencies": [],
+    "registry_dependencies": [],
+    "files": [
+      {
+        "path": "files/form-view.tsx",
+        "type": "registry:lib",
+        "target": "src/app/_components/form-view.tsx",
+        "hash": null
+      }
+    ],
+    "css_vars": {},
+    "env_vars": {},
+    "meta_loom": {
+      "seam_id": "ui.form",
+      "interface_sig": "function FormView({ fields, onSubmit, submitLabel = \"提交\" }: FormViewProps)",
+      "provenance": "platform",
+      "health": 0.7,
+      "content_hash": "sha256:6be33eaa6bbad319",
+      "license": "MIT",
+      "ext_pkgs": [],
+      "tradeoffs": "带必填校验的表单，空必填字段阻止提交。适合需基础校验的创建/编辑；仅必填校验，无格式/异步校验。"
+    }
+  },
+  "l0": {
+    "ref": "validated-form",
+    "seam_id": "ui.form",
+    "summary": "带必填校验的受控表单，required 字段为空阻止提交并显错。零依赖。",
+    "deps": [],
+    "loc": 70,
+    "health": 0.7,
+    "provenance": "platform",
+    "content_hash": "sha256:6be33eaa6bbad319"
+  },
+  "l1": {
+    "ref": "validated-form",
+    "content_hash": "sha256:6be33eaa6bbad319",
+    "exports": [
+      {
+        "name": "FormView",
+        "signature": "function FormView({ fields, onSubmit, submitLabel = \"提交\" }: FormViewProps)",
+        "kind": "component"
+      }
+    ],
+    "types": [],
+    "imports": []
+  },
+  "barrel_snippet": {}
+}

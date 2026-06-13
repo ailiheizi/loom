@@ -57,6 +57,18 @@ TRADEOFFS: dict[str, str] = {
     # ── file.upload（新 seam）──
     "data-url-upload": "base64 data URL 上传，零后端零依赖。适合 MVP/头像等小文件预览；不持久化、大文件会撑爆内存。",
     "presigned-url-upload": "PUT 到预签名 URL（S3/R2/OSS）。适合生产对象存储；需后端先签发 URL，本函数只管上传动作。",
+    # ── ui.form ──
+    "simple-form": "基础受控表单，纯 text 输入。最简单，适合快速录入；无校验、无字段类型，复杂表单不够用。",
+    "validated-form": "带必填校验的表单，空必填字段阻止提交。适合需基础校验的创建/编辑；仅必填校验，无格式/异步校验。",
+    "typed-form": "多字段类型（text/textarea/select）。适合字段多样的实体编辑；类型有限，无日期/文件等高级控件。",
+    # ── ui.layout ──
+    "sidebar-layout": "侧边栏布局，左导航+右内容。适合后台管理（多入口）；窄屏需自行处理折叠。",
+    "topbar-layout": "顶栏布局，水平导航+居中内容。适合内容站/营销页/少入口应用；入口多会挤。",
+    # ── ui.detail ──
+    "field-list-detail": "字段列表式（dl/dt/dd）详情。紧凑、适合多字段；纯展示无操作按钮。",
+    "card-detail": "卡片式详情，带标题网格布局。视觉更突出、适合单条资源；字段极多时网格会很长。",
+    # ── auth 扩展 ──
+    "magic-link": "邮箱+验证码登录（Credentials 实现，零依赖）。适合无第三方 OAuth 的自主登录；验证码校验是骨架，生产需接邮件服务+存储。",
 }
 
 

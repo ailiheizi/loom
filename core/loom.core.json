@@ -118,6 +118,54 @@
       "compat_range": null,
       "cardinality": "one",
       "env_vars": []
+    },
+    {
+      "seam_id": "ui.form",
+      "kind": "ui-component",
+      "signature": "(props:{onSubmit:(data)=>void; fields:...}) => JSX 受控表单组件",
+      "signature_ref": null,
+      "barrel": {
+        "file": "src/app/_components/",
+        "anchor_import": null,
+        "anchor_register": null,
+        "op": "file-add"
+      },
+      "target": "src/app/_components/",
+      "compat_range": null,
+      "cardinality": "one",
+      "env_vars": []
+    },
+    {
+      "seam_id": "ui.layout",
+      "kind": "ui-component",
+      "signature": "(props:{children}) => JSX 应用布局/导航骨架",
+      "signature_ref": null,
+      "barrel": {
+        "file": "src/app/_components/",
+        "anchor_import": null,
+        "anchor_register": null,
+        "op": "file-add"
+      },
+      "target": "src/app/_components/",
+      "compat_range": null,
+      "cardinality": "one",
+      "env_vars": []
+    },
+    {
+      "seam_id": "ui.detail",
+      "kind": "ui-component",
+      "signature": "(props:{data:Record<string,unknown>}) => JSX 详情/卡片展示组件",
+      "signature_ref": null,
+      "barrel": {
+        "file": "src/app/_components/",
+        "anchor_import": null,
+        "anchor_register": null,
+        "op": "file-add"
+      },
+      "target": "src/app/_components/",
+      "compat_range": null,
+      "cardinality": "one",
+      "env_vars": []
     }
   ]
 }

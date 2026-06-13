@@ -1,0 +1,54 @@
+{
+  "registry_item": {
+    "name": "simple-form",
+    "type": "registry:lib",
+    "title": "simple-form",
+    "description": "基础受控表单，每字段一个 text input，提交回调 Record。零依赖，配 CRUD create/update。",
+    "dependencies": [],
+    "registry_dependencies": [],
+    "files": [
+      {
+        "path": "files/form-view.tsx",
+        "type": "registry:lib",
+        "target": "src/app/_components/form-view.tsx",
+        "hash": null
+      }
+    ],
+    "css_vars": {},
+    "env_vars": {},
+    "meta_loom": {
+      "seam_id": "ui.form",
+      "interface_sig": "function FormView({ fields, onSubmit, submitLabel = \"提交\" }: FormViewProps)",
+      "provenance": "platform",
+      "health": 0.7,
+      "content_hash": "sha256:ef42c86da2fd9b0d",
+      "license": "MIT",
+      "ext_pkgs": [],
+      "tradeoffs": "基础受控表单，纯 text 输入。最简单，适合快速录入；无校验、无字段类型，复杂表单不够用。"
+    }
+  },
+  "l0": {
+    "ref": "simple-form",
+    "seam_id": "ui.form",
+    "summary": "基础受控表单，每字段一个 text input，提交回调 Record。零依赖，配 CRUD create/update。",
+    "deps": [],
+    "loc": 53,
+    "health": 0.7,
+    "provenance": "platform",
+    "content_hash": "sha256:ef42c86da2fd9b0d"
+  },
+  "l1": {
+    "ref": "simple-form",
+    "content_hash": "sha256:ef42c86da2fd9b0d",
+    "exports": [
+      {
+        "name": "FormView",
+        "signature": "function FormView({ fields, onSubmit, submitLabel = \"提交\" }: FormViewProps)",
+        "kind": "component"
+      }
+    ],
+    "types": [],
+    "imports": []
+  },
+  "barrel_snippet": {}
+}

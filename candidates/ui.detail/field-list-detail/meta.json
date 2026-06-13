@@ -1,0 +1,54 @@
+{
+  "registry_item": {
+    "name": "field-list-detail",
+    "type": "registry:lib",
+    "title": "field-list-detail",
+    "description": "字段列表式详情（dl/dt/dd 定义列表）。零依赖，fields 省略则展示所有键。",
+    "dependencies": [],
+    "registry_dependencies": [],
+    "files": [
+      {
+        "path": "files/detail-view.tsx",
+        "type": "registry:lib",
+        "target": "src/app/_components/detail-view.tsx",
+        "hash": null
+      }
+    ],
+    "css_vars": {},
+    "env_vars": {},
+    "meta_loom": {
+      "seam_id": "ui.detail",
+      "interface_sig": "function DetailView({ data, fields }: DetailViewProps)",
+      "provenance": "platform",
+      "health": 0.7,
+      "content_hash": "sha256:4382c5c2346a250a",
+      "license": "MIT",
+      "ext_pkgs": [],
+      "tradeoffs": "字段列表式（dl/dt/dd）详情。紧凑、适合多字段；纯展示无操作按钮。"
+    }
+  },
+  "l0": {
+    "ref": "field-list-detail",
+    "seam_id": "ui.detail",
+    "summary": "字段列表式详情（dl/dt/dd 定义列表）。零依赖，fields 省略则展示所有键。",
+    "deps": [],
+    "loc": 31,
+    "health": 0.7,
+    "provenance": "platform",
+    "content_hash": "sha256:4382c5c2346a250a"
+  },
+  "l1": {
+    "ref": "field-list-detail",
+    "content_hash": "sha256:4382c5c2346a250a",
+    "exports": [
+      {
+        "name": "DetailView",
+        "signature": "function DetailView({ data, fields }: DetailViewProps)",
+        "kind": "component"
+      }
+    ],
+    "types": [],
+    "imports": []
+  },
+  "barrel_snippet": {}
+}

@@ -70,6 +70,26 @@ SEED: list[tuple[str, str, str, str, str]] = [
      "uploadFile 把 File 读成 base64 data URL，零后端零依赖，适合 MVP/小文件预览。", "src/lib/upload/data-url-upload.ts"),
     ("file.upload/presigned-url-upload.ts", "file.upload", "presigned-url-upload",
      "uploadFile 把文件 PUT 到预签名 URL（S3/R2/OSS 模式），浏览器原生 fetch，零依赖。", "src/lib/upload/presigned-url-upload.ts"),
+    # ── ui.form（新 seam，落 src/app/_components/form-view.tsx）让 CRUD 闭环 ──
+    ("ui.form/simple-form.tsx", "ui.form", "simple-form",
+     "基础受控表单，每字段一个 text input，提交回调 Record。零依赖，配 CRUD create/update。", "src/app/_components/form-view.tsx"),
+    ("ui.form/validated-form.tsx", "ui.form", "validated-form",
+     "带必填校验的受控表单，required 字段为空阻止提交并显错。零依赖。", "src/app/_components/form-view.tsx"),
+    ("ui.form/typed-form.tsx", "ui.form", "typed-form",
+     "多字段类型表单（text/textarea/select）。零依赖，适合字段多样的实体编辑。", "src/app/_components/form-view.tsx"),
+    # ── ui.layout（新 seam，落 src/app/_components/app-layout.tsx）应用骨架 ──
+    ("ui.layout/sidebar-layout.tsx", "ui.layout", "sidebar-layout",
+     "侧边栏应用布局，左侧固定导航+右侧内容区。零依赖，适合后台管理骨架。", "src/app/_components/app-layout.tsx"),
+    ("ui.layout/topbar-layout.tsx", "ui.layout", "topbar-layout",
+     "顶栏应用布局，顶部水平导航+居中内容区。零依赖，适合内容站/简单应用。", "src/app/_components/app-layout.tsx"),
+    # ── ui.detail（新 seam，落 src/app/_components/detail-view.tsx）详情展示 ──
+    ("ui.detail/field-list-detail.tsx", "ui.detail", "field-list-detail",
+     "字段列表式详情（dl/dt/dd 定义列表）。零依赖，fields 省略则展示所有键。", "src/app/_components/detail-view.tsx"),
+    ("ui.detail/card-detail.tsx", "ui.detail", "card-detail",
+     "卡片式详情，带标题的网格卡片展示字段。零依赖，适合单条资源展示。", "src/app/_components/detail-view.tsx"),
+    # ── auth.oauth_provider 扩展：magic-link 邮箱登录 ──
+    ("auth.oauth_provider/magic-link.ts", "auth.oauth_provider", "magic-link",
+     "Magic-link 风格邮箱登录（Credentials 实现，零依赖）。邮箱+验证码登录，加入 providers[]。", "src/server/auth/providers/magic-link.ts"),
 ]
 
 

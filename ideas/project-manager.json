@@ -1,0 +1,15 @@
+{
+  "idea_id": "project-manager",
+  "title": "项目管理应用（完整 UI）",
+  "description": "一个项目管理应用：Google 登录，侧边栏布局，项目 CRUD，表格展示项目列表，表单创建/编辑项目，详情页查看单个项目。",
+  "ecosystem": "node-ts-web",
+  "core_ref": "create-t3-app@7.39.x",
+  "capability_intents": [
+    { "intent": "用户用 Google 账号登录", "seam_id": "auth.oauth_provider" },
+    { "intent": "应用侧边栏布局与导航骨架", "seam_id": "ui.layout" },
+    { "intent": "对项目 Project 做增删改查", "seam_id": "data.crud_resource" },
+    { "intent": "用表格展示项目列表", "seam_id": "ui.data_table" },
+    { "intent": "用表单创建和编辑项目", "seam_id": "ui.form" },
+    { "intent": "详情页查看单个项目", "seam_id": "ui.detail" }
+  ]
+}
