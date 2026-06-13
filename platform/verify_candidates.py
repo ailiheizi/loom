@@ -60,7 +60,7 @@ for(const s of specs){
     results.push({cand:s.cand, err:-1, detail:[String(e).slice(0,60)]});
   }
 }
-console.log(JSON.stringify(results));
+console.log("__VERIFY_RESULT__" + JSON.stringify(results));
 """
 
 
@@ -91,11 +91,13 @@ def main() -> None:
         ["node", str(tsx), str(script_path), str(ROOT), json.dumps(specs)],
         capture_output=True, text=True, cwd=str(ROOT / "client"),
     )
-    out_lines = [l for l in proc.stdout.splitlines() if l.strip().startswith("[")]
-    if not out_lines:
+    # 结果行用 __VERIFY_RESULT__ 前缀标记，避免与 materialize/repair 的 [..] 进度日志混淆
+    marker = "__VERIFY_RESULT__"
+    result_lines = [l for l in proc.stdout.splitlines() if l.strip().startswith(marker)]
+    if not result_lines:
         print("✗ gate 验证未返回结果:", proc.stderr[-300:])
         return
-    results = json.loads(out_lines[-1])
+    results = json.loads(result_lines[-1].strip()[len(marker):])
 
     print("=== 候选 gate 守门（单独物化进 t3 严格模式）===\n")
     ok = bad = 0
