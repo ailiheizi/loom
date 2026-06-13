@@ -12,7 +12,7 @@
  * repairLoop 保持 arm-agnostic：arm 语义（哪段 token 算披露）由本 runner 显式注入。
  * 副作用隔离在 .work/。
  */
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
@@ -43,25 +43,31 @@ if (arm === "assembly") {
   // 选择阶段：现跑或读已有 plan
   if (doSelect) {
     console.log("[t9] 现跑 run_select.py…");
-    const r = spawnSync("python", ["run_select.py"], { cwd: resolve(root, "platform"), encoding: "utf-8" });
+    const r = spawnSync("uv", ["run", "python", "run_select.py", ideaPath, "--retrieve"], { cwd: resolve(root, "platform"), encoding: "utf-8" });
     if (r.status !== 0) {
       console.error("run_select.py 失败：", r.stderr?.slice(0, 400));
       process.exit(1);
     }
   }
-  const plan = AssemblyPlan.parse(JSON.parse(readFileSync(resolve(root, ".work/assembly-plan.json"), "utf-8")));
+  // plan 路径：--plan 显式指定 > 按 idea_id 约定 > 旧的固定名兜底
+  const planArg = arg("--plan");
+  const planPath = planArg
+    ? resolve(root, planArg)
+    : resolve(root, `.work/assembly-plan-${idea.idea_id}.json`);
+  const planFile = existsSync(planPath) ? planPath : resolve(root, ".work/assembly-plan.json");
+  const plan = AssemblyPlan.parse(JSON.parse(readFileSync(planFile, "utf-8")));
   const candidates = loadCandidates(resolve(root, "candidates"));
   // 选择期 token 经 plan.budget 跨语言桥注入（disclosure + prior 同源）
   const selIn = plan.budget.input_tok;
   const selOut = plan.budget.output_tok;
-  console.log(`[t9] 选择期 token: in=${selIn} out=${selOut}（并入 total，单列 disclosure）`);
+  console.log(`[t9] plan=${planFile}  选择期 token: in=${selIn} out=${selOut}（并入 total，单列 disclosure）`);
 
   const res = await repairLoop({
     plan,
     candidates,
     coreSeams: core.seams,
     baseDir: resolve(root, "core/t3-base"),
-    outDir: resolve(root, ".work/t9-assembly"),
+    outDir: resolve(root, `.work/t9-assembly-${idea.idea_id}`),
     metricsDir: resolve(root, ".work"),
     arm: "assembly",
     maxRounds: 3,
