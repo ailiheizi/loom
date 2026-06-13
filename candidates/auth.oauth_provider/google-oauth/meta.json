@@ -26,7 +26,8 @@
       "health": 1.0,
       "content_hash": null,
       "license": "MIT",
-      "ext_pkgs": []
+      "ext_pkgs": [],
+      "tradeoffs": "NextAuth Google provider，接 authConfig.providers[]。覆盖最广的消费级登录；需配 Google OAuth 凭据。"
     }
   },
   "l0": {
@@ -50,7 +51,10 @@
       }
     ],
     "types": [],
-    "imports": ["next-auth/providers/google", "~/env"]
+    "imports": [
+      "next-auth/providers/google",
+      "~/env"
+    ]
   },
   "barrel_snippet": {
     "import": "import { googleProvider } from \"~/server/auth/providers/google\";",

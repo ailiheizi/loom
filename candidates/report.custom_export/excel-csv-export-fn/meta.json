@@ -23,7 +23,8 @@
       "health": 0.7,
       "content_hash": "sha256:e2537d1b69aa9463",
       "license": "MIT",
-      "ext_pkgs": []
+      "ext_pkgs": [],
+      "tradeoffs": "零依赖，带 UTF-8 BOM 的 CSV，解决 Excel 中文乱码。面向 Excel 用户首选；纯文本/程序消费场景用普通 csv 即可。"
     }
   },
   "l0": {

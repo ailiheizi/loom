@@ -23,7 +23,8 @@
       "health": 0.7,
       "content_hash": "sha256:37bad58d7c879057",
       "license": "MIT",
-      "ext_pkgs": []
+      "ext_pkgs": [],
+      "tradeoffs": "零依赖，pretty JSON + 列投影。适合程序间数据交换/调试；不适合给非技术用户。"
     }
   },
   "l0": {

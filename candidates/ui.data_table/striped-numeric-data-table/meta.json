@@ -23,7 +23,8 @@
       "health": 0.7,
       "content_hash": "sha256:ad571ef9f6e7e4b3",
       "license": "MIT",
-      "ext_pkgs": []
+      "ext_pkgs": [],
+      "tradeoffs": "零依赖，斑马纹 + 数字列自动右对齐。适合财务/报表只读展示；按值类型判断对齐，纯展示无交互。"
     }
   },
   "l0": {

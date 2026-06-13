@@ -23,7 +23,8 @@
       "health": 0.7,
       "content_hash": "sha256:9c487f8344341061",
       "license": "MIT",
-      "ext_pkgs": []
+      "ext_pkgs": [],
+      "tradeoffs": "tRPC router，Post 资源 CRUD（t3 经典示例）。适合博客/内容类；字段固定为 Post 语义，其他资源需改写。"
     }
   },
   "l0": {

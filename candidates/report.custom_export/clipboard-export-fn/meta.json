@@ -23,7 +23,8 @@
       "health": 0.7,
       "content_hash": "sha256:292b2576df9330a9",
       "license": "MIT",
-      "ext_pkgs": []
+      "ext_pkgs": [],
+      "tradeoffs": "零依赖，复制 CSV 到剪贴板（navigator.clipboard）。适合快速复制粘贴；依赖浏览器剪贴板权限，需 https/用户手势。"
     }
   },
   "l0": {

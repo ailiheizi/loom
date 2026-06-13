@@ -23,7 +23,8 @@
       "health": 0.7,
       "content_hash": "sha256:313c1381607bb8e2",
       "license": "MIT",
-      "ext_pkgs": []
+      "ext_pkgs": [],
+      "tradeoffs": "零依赖，浏览器原生 CSV（处理逗号/引号/换行转义）。通用导出首选；Excel 打开中文可能乱码（用 excel-csv 版）。"
     }
   },
   "l0": {

@@ -24,7 +24,8 @@
       "content_hash": "sha256:de5da3672c5a099f",
       "license": "MIT",
       "ext_pkgs": [],
-      "requires_prisma_model": "Project"
+      "requires_prisma_model": "Project",
+      "tradeoffs": "只读列表 router（仅 list/get）。适合纯展示/报表类资源；不支持写操作，需要增删改时不适用。"
     }
   },
   "l0": {

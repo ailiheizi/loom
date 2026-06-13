@@ -23,7 +23,8 @@
       "health": 0.7,
       "content_hash": "sha256:7f507b7fc197bbb3",
       "license": "MIT",
-      "ext_pkgs": []
+      "ext_pkgs": [],
+      "tradeoffs": "零依赖，顶部全局文本筛选（跨列子串匹配）。适合带搜索的列表；仅文本包含匹配，无高级筛选条件。"
     }
   },
   "l0": {

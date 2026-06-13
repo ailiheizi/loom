@@ -23,7 +23,8 @@
       "health": 0.7,
       "content_hash": "sha256:72518497e0fa9fd6",
       "license": "MIT",
-      "ext_pkgs": []
+      "ext_pkgs": [],
+      "tradeoffs": "CSV 批量导入（解析 + 入库）。适合联系人/通讯录类批量录入；字段映射偏 Contact 语义，其他实体需调整。"
     }
   },
   "l0": {

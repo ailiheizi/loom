@@ -23,7 +23,8 @@
       "health": 0.7,
       "content_hash": "sha256:4ca2d8c1552b735d",
       "license": "MIT",
-      "ext_pkgs": []
+      "ext_pkgs": [],
+      "tradeoffs": "零依赖，点击表头排序（localeCompare 数字感知）。适合需排序但不想引 tanstack 的场景；排序在客户端，大数据量有性能上限。"
     }
   },
   "l0": {

@@ -244,6 +244,47 @@ class AssemblyPlan(BaseModel):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# 候选梯度提案（第二步：候选级梯度呈现）
+# server 对每个 seam 召回 2-3 个真实候选 + 架构取舍，供宿主 agent 摊给架构师挑。
+# 纯检索产物，零 LLM。这是 agent-native 愿景里 server 的核心只读能力之一。
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+class CandidateProposal(BaseModel):
+    """单个候选的提案视图（给架构师做决策的最小信息集）。"""
+
+    ref: str = Field(description="候选标识")
+    summary: str = Field(description="一句话能力摘要")
+    deps: list[str] = Field(default_factory=list, description="外部 npm 依赖；空=零依赖")
+    health: float = Field(default=1.0, ge=0.0, le=1.0)
+    provenance: Provenance = Field(default=Provenance.PLATFORM)
+    score: float = Field(default=0.0, description="检索综合分（越高越贴合需求）")
+    tradeoffs: str = Field(
+        default="", description="架构取舍说明：依赖/复杂度/适用场景，供架构师判断"
+    )
+    recommended: bool = Field(default=False, description="检索排序第一=默认推荐项")
+
+
+class SeamProposal(BaseModel):
+    """一个 seam 的候选梯度（2-3 个真实候选；空=该 seam 无候选需 generate）。"""
+
+    seam_id: str
+    intent: str = Field(description="该 seam 对应的能力意图（来自想法）")
+    candidates: list[CandidateProposal] = Field(default_factory=list)
+    needs_generate: bool = Field(
+        default=False, description="True=池内无候选，只能从零生成"
+    )
+
+
+class GradientProposal(BaseModel):
+    """一个想法的完整候选梯度提案。宿主 agent 读它，逐 seam 摊给用户挑。"""
+
+    idea_id: str
+    core_ref: str = Field(description="如 create-t3-app@7.39.x")
+    seams: list[SeamProposal] = Field(default_factory=list)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # 物化两件套：manifest + lockfile（client 拿到后确定性物化）
 # ─────────────────────────────────────────────────────────────────────────────
 

@@ -24,7 +24,8 @@
       "content_hash": null,
       "license": "MIT",
       "ext_pkgs": [],
-      "requires_prisma_model": "Project"
+      "requires_prisma_model": "Project",
+      "tradeoffs": "泛型 CRUD 工厂，按资源名生成 router。适合多资源复用、减少样板；抽象层带来理解成本，定制单点逻辑较绕。"
     }
   },
   "l0": {
@@ -50,7 +51,10 @@
     "types": [
       "type CrudModel = { findMany: Function; findUnique: Function; create: Function; update: Function; delete: Function }"
     ],
-    "imports": ["zod", "~/server/api/trpc"]
+    "imports": [
+      "zod",
+      "~/server/api/trpc"
+    ]
   },
   "barrel_snippet": {
     "import": "import { projectRouter } from \"~/server/api/routers/crud-factory\";",

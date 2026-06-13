@@ -23,7 +23,8 @@
       "health": 0.7,
       "content_hash": "sha256:e0bb47265633c998",
       "license": "MIT",
-      "ext_pkgs": []
+      "ext_pkgs": [],
+      "tradeoffs": "零依赖，紧凑只读（小行距、无阴影圆角）。适合 dashboard 卡片内密集展示；纯展示无交互。"
     }
   },
   "l0": {

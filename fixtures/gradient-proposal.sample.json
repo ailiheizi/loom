@@ -1,0 +1,39 @@
+{
+  "idea_id": "saas-admin-gradient",
+  "core_ref": "create-t3-app@7.39.x",
+  "seams": [
+    {
+      "seam_id": "auth.oauth_provider",
+      "intent": "add Google OAuth login",
+      "candidates": [
+        {
+          "ref": "google-oauth",
+          "summary": "NextAuth Google provider wiring",
+          "deps": ["next-auth"],
+          "health": 0.96,
+          "provenance": "platform",
+          "score": 0.91,
+          "tradeoffs": "Fastest path, but tied to NextAuth provider shape.",
+          "recommended": true
+        },
+        {
+          "ref": "custom-oauth-adapter",
+          "summary": "Custom OAuth adapter with more control",
+          "deps": ["openid-client"],
+          "health": 0.74,
+          "provenance": "user",
+          "score": 0.67,
+          "tradeoffs": "More flexible, but adds adapter complexity.",
+          "recommended": false
+        }
+      ],
+      "needs_generate": false
+    },
+    {
+      "seam_id": "report.custom_export",
+      "intent": "export admin data to xlsx",
+      "candidates": [],
+      "needs_generate": true
+    }
+  ]
+}

@@ -23,7 +23,8 @@
       "health": 0.7,
       "content_hash": "sha256:593919b1cb0152fa",
       "license": "MIT",
-      "ext_pkgs": []
+      "ext_pkgs": [],
+      "tradeoffs": "零依赖，GFM 表格。适合贴进 README/issue/文档；不适合数据量大或需机器解析的场景。"
     }
   },
   "l0": {

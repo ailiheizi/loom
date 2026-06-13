@@ -26,7 +26,8 @@
       "health": 1.0,
       "content_hash": null,
       "license": "MIT",
-      "ext_pkgs": []
+      "ext_pkgs": [],
+      "tradeoffs": "NextAuth GitHub provider。面向开发者/技术产品的登录首选；非技术用户覆盖不如 Google。"
     }
   },
   "l0": {
@@ -50,7 +51,10 @@
       }
     ],
     "types": [],
-    "imports": ["next-auth/providers/github", "~/env"]
+    "imports": [
+      "next-auth/providers/github",
+      "~/env"
+    ]
   },
   "barrel_snippet": {
     "import": "import { githubProvider } from \"~/server/auth/providers/github\";",

@@ -23,7 +23,8 @@
       "health": 0.7,
       "content_hash": "sha256:852ef8d4ef115cab",
       "license": "MIT",
-      "ext_pkgs": []
+      "ext_pkgs": [],
+      "tradeoffs": "Markdown 渲染组件。适合内容展示；具体依赖见 deps，注意 XSS（渲染不可信内容需 sanitize）。"
     }
   },
   "l0": {

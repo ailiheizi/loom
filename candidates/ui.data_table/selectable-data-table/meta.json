@@ -23,7 +23,8 @@
       "health": 0.7,
       "content_hash": "sha256:f14e6cee6cb29783",
       "license": "MIT",
-      "ext_pkgs": []
+      "ext_pkgs": [],
+      "tradeoffs": "零依赖，多选行（复选框列 + 全选 + 已选计数）。适合批量操作场景；选择状态在组件内，需自行接批量动作。"
     }
   },
   "l0": {

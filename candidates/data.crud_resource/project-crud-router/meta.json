@@ -24,7 +24,8 @@
       "content_hash": null,
       "license": "MIT",
       "ext_pkgs": [],
-      "requires_prisma_model": "Project"
+      "requires_prisma_model": "Project",
+      "tradeoffs": "tRPC router，专为 Project 资源的完整 CRUD（list/get/create/update/delete）。需对应 prisma model；最贴合标准 CRUD 需求。"
     }
   },
   "l0": {
@@ -48,7 +49,10 @@
       }
     ],
     "types": [],
-    "imports": ["zod", "~/server/api/trpc"]
+    "imports": [
+      "zod",
+      "~/server/api/trpc"
+    ]
   },
   "barrel_snippet": {
     "import": "import { projectRouter } from \"~/server/api/routers/project\";",

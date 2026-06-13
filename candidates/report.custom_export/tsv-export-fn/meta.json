@@ -23,7 +23,8 @@
       "health": 0.7,
       "content_hash": "sha256:7195f3f380d14e11",
       "license": "MIT",
-      "ext_pkgs": []
+      "ext_pkgs": [],
+      "tradeoffs": "零依赖，制表符分隔。Excel/Sheets 粘贴友好、少引号转义问题；字段内含制表符会被替换为空格。"
     }
   },
   "l0": {

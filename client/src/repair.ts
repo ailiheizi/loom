@@ -58,6 +58,13 @@ export interface RepairConfig {
   disclosureInputTok?: number;
   /** 其中属于"披露/选择期"的 output，单列进 disclosure_output_tok */
   disclosureOutputTok?: number;
+  /**
+   * 修复模式（LLM 翻转开关，agent-native 设计）：
+   *  - "llm"（默认）：gate 失败时 client 侧调 LLM 跑有界修复轮（全自动 shell 路径用）。
+   *  - "none"：不调任何 LLM。gate 失败即停在 round-0，残留诊断经 RepairResult.unresolved 回传，
+   *    交给宿主 agent（client 侧的 Claude）修。MCP/agent-native 路径用这个，server 侧零 LLM。
+   */
+  repairMode?: "llm" | "none";
 }
 
 export interface RepairResult {
@@ -66,6 +73,8 @@ export interface RepairResult {
   outDir: string;
   /** 分层提交用：每层涉及的文件相对路径（picked=pick落盘+barrel, generated=generate内容, deterministic=prisma/env, repair-round-N=该轮override）。 */
   layers: { label: string; files: string[] }[];
+  /** repairMode="none" 且未收敛时，未解决的诊断（供宿主 agent 接手修）。 */
+  unresolved?: GateResult["diagnostics"];
 }
 
 /**
@@ -535,7 +544,12 @@ export async function repairLoop(cfg: RepairConfig): Promise<RepairResult> {
   let converged = g.errorCount === 0;
 
   // ── E. 修复轮 1..maxRounds
-  if (!converged) {
+  // repairMode="none"：不调 LLM，gate 失败即停，残留诊断回传给宿主 agent 修（LLM 翻转）。
+  const repairMode = cfg.repairMode ?? "llm";
+  if (!converged && repairMode === "none") {
+    log(`repairMode=none：gate 残留 ${g.errorCount} 错，不调 LLM，交回宿主 agent 修复`);
+  }
+  if (!converged && repairMode !== "none") {
     let prevFp = new Set(g.fingerprints);
     let prevCount = g.errorCount;
 
@@ -640,5 +654,11 @@ export async function repairLoop(cfg: RepairConfig): Promise<RepairResult> {
   const metricsPath = persistMetrics(metricsDir, cfg.arm, metrics);
   log(`converged=${converged} final_error=${g.errorCount} 指标写入 ${metricsPath}`);
 
-  return { metrics, finalGate: g, outDir: cfg.outDir, layers };
+  return {
+    metrics,
+    finalGate: g,
+    outDir: cfg.outDir,
+    layers,
+    unresolved: converged ? undefined : g.diagnostics,
+  };
 }

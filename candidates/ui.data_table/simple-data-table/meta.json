@@ -23,7 +23,8 @@
       "health": 1.0,
       "content_hash": null,
       "license": "MIT",
-      "ext_pkgs": []
+      "ext_pkgs": [],
+      "tradeoffs": "零外部依赖，原生 table。功能基础（无排序/分页/筛选）。适合快速展示小数据量，不适合大数据或需交互的场景。"
     }
   },
   "l0": {

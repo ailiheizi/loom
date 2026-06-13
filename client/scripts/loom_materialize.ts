@@ -30,6 +30,9 @@ const candidates = loadCandidates(resolve(root, "candidates"));
 
 console.log(`[materialize] idea=${plan.idea_id} seams=${plan.seams.length} → ${outDir}`);
 
+// LOOM_REPAIR_MODE=none：不调 LLM，gate 残留错交回宿主 agent（agent-native / MCP 路径用）。
+const repairMode = process.env.LOOM_REPAIR_MODE === "none" ? "none" : "llm";
+
 const res = await repairLoop({
   plan,
   candidates,
@@ -39,6 +42,7 @@ const res = await repairLoop({
   metricsDir: resolve(root, ".work"),
   arm: "assembly",
   maxRounds: 3,
+  repairMode,
   priorInputTok: plan.budget.input_tok,
   priorOutputTok: plan.budget.output_tok,
   disclosureInputTok: plan.budget.input_tok,
@@ -51,5 +55,9 @@ for (const layer of res.layers) {
 }
 if (!res.metrics.converged) {
   console.error(`[materialize] ⚠ 未完全收敛（${res.metrics.final_error_count} error），starter 可能需手工补修`);
+  if (res.unresolved && res.unresolved.length) {
+    // 回传未解决诊断给宿主 agent（repairMode=none 时它来修）
+    console.log("[materialize] UNRESOLVED " + JSON.stringify(res.unresolved));
+  }
   process.exit(2);
 }

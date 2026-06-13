@@ -195,6 +195,37 @@ export const AssemblyPlan = z.object({
 export type AssemblyPlan = z.infer<typeof AssemblyPlan>;
 
 // ─────────────────────────────────────────────────────────────────────────────
+// 候选梯度提案
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const CandidateProposal = z.object({
+  ref: z.string(),
+  summary: z.string(),
+  deps: z.array(z.string()).default([]),
+  health: z.number().min(0).max(1).default(1.0),
+  provenance: Provenance.default("platform"),
+  score: z.number().default(0.0),
+  tradeoffs: z.string().default(""),
+  recommended: z.boolean().default(false),
+});
+export type CandidateProposal = z.infer<typeof CandidateProposal>;
+
+export const SeamProposal = z.object({
+  seam_id: z.string(),
+  intent: z.string(),
+  candidates: z.array(CandidateProposal).default([]),
+  needs_generate: z.boolean().default(false),
+});
+export type SeamProposal = z.infer<typeof SeamProposal>;
+
+export const GradientProposal = z.object({
+  idea_id: z.string(),
+  core_ref: z.string(),
+  seams: z.array(SeamProposal).default([]),
+});
+export type GradientProposal = z.infer<typeof GradientProposal>;
+
+// ─────────────────────────────────────────────────────────────────────────────
 // 物化两件套
 // ─────────────────────────────────────────────────────────────────────────────
 

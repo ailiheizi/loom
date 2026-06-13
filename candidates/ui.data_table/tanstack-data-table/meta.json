@@ -4,7 +4,9 @@
     "type": "registry:lib",
     "title": "TanStack Data Table",
     "description": "基于 @tanstack/react-table 的 React 数据表格组件，支持排序，使用前需要额外安装 npm 依赖。",
-    "dependencies": ["@tanstack/react-table@^8.20.0"],
+    "dependencies": [
+      "@tanstack/react-table@^8.20.0"
+    ],
     "registry_dependencies": [],
     "files": [
       {
@@ -24,15 +26,22 @@
       "content_hash": null,
       "license": "MIT",
       "ext_pkgs": [
-        { "name": "@tanstack/react-table", "version": "^8.20.0", "license": "MIT" }
-      ]
+        {
+          "name": "@tanstack/react-table",
+          "version": "^8.20.0",
+          "license": "MIT"
+        }
+      ],
+      "tradeoffs": "依赖 @tanstack/react-table（需装包），支持排序等高级能力。适合复杂交互表格，代价是引入运行时依赖与学习成本。"
     }
   },
   "l0": {
     "ref": "tanstack-data-table",
     "seam_id": "ui.data_table",
     "summary": "基于 @tanstack/react-table 的受控 React 数据表格，支持列排序，但需要额外安装 npm 依赖。",
-    "deps": ["@tanstack/react-table@^8.20.0"],
+    "deps": [
+      "@tanstack/react-table@^8.20.0"
+    ],
     "loc": 90,
     "health": 0.9,
     "provenance": "platform",
@@ -52,7 +61,10 @@
       "type DataTableColumn = { key: string; header: string }",
       "type DataTableProps = { columns: DataTableColumn[]; rows: Record<string, unknown>[] }"
     ],
-    "imports": ["@tanstack/react-table", "react"]
+    "imports": [
+      "@tanstack/react-table",
+      "react"
+    ]
   },
   "barrel_snippet": {}
 }

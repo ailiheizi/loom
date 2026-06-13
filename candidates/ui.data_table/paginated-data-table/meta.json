@@ -23,7 +23,8 @@
       "health": 0.7,
       "content_hash": "sha256:128656cff9d4db08",
       "license": "MIT",
-      "ext_pkgs": []
+      "ext_pkgs": [],
+      "tradeoffs": "零依赖，客户端分页（可选 pageSize）。适合中等数据量分页浏览；纯客户端分页，超大数据集仍需服务端分页。"
     }
   },
   "l0": {

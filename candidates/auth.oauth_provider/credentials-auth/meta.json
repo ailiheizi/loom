@@ -23,7 +23,8 @@
       "health": 0.7,
       "content_hash": "sha256:b78a3afac5b299a9",
       "license": "MIT",
-      "ext_pkgs": []
+      "ext_pkgs": [],
+      "tradeoffs": "NextAuth Credentials（账号密码）。无第三方依赖、自主可控；需自行管理密码安全/哈希，安全责任更重。"
     }
   },
   "l0": {
