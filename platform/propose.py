@@ -39,12 +39,33 @@ def _build_candidate_lookup(by_seam: dict[str, list]) -> dict[tuple[str, str], o
     return lookup
 
 
+# 长驻进程（MCP server）缓存：候选池 + Retriever（含 fastembed 模型）只建一次。
+# 首次构建会加载 ONNX 模型（慢），缓存后后续调用快——避免 MCP 工具首调超时。
+_RETRIEVER_CACHE: dict | None = None
+
+
+def _get_retriever_bundle() -> tuple[dict, dict, Retriever]:
+    global _RETRIEVER_CACHE
+    if _RETRIEVER_CACHE is None:
+        by_seam = load_candidates(CANDIDATES_ROOT)
+        _RETRIEVER_CACHE = {
+            "by_seam": by_seam,
+            "lookup": _build_candidate_lookup(by_seam),
+            "retriever": Retriever(by_seam),
+        }
+    c2 = _RETRIEVER_CACHE
+    return c2["by_seam"], c2["lookup"], c2["retriever"]
+
+
+def warmup() -> None:
+    """预热：在 MCP server 启动时调用，把 fastembed 模型加载移到启动期。"""
+    _get_retriever_bundle()
+
+
 def propose(idea_path: Path) -> c.GradientProposal:
     idea = _load_idea(idea_path)
     seam_signatures = _load_seam_signatures()
-    by_seam = load_candidates(CANDIDATES_ROOT)
-    candidate_lookup = _build_candidate_lookup(by_seam)
-    retriever = Retriever(by_seam)
+    by_seam, candidate_lookup, retriever = _get_retriever_bundle()
 
     seams: list[c.SeamProposal] = []
     for capability in idea.get("capability_intents", []):

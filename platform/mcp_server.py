@@ -157,4 +157,10 @@ def _env() -> dict:
 
 
 if __name__ == "__main__":
+    # 启动预热：把 fastembed 模型加载移到 server 启动期，避免首次工具调用超时。
+    try:
+        from propose import warmup
+        warmup()
+    except Exception:
+        pass  # 预热失败不阻塞启动，首次调用会懒加载
     mcp.run(transport="stdio")
