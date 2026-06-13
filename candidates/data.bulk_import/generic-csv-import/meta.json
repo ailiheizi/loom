@@ -1,0 +1,54 @@
+{
+  "registry_item": {
+    "name": "generic-csv-import",
+    "type": "registry:lib",
+    "title": "generic-csv-import",
+    "description": "parseCsv 通用 CSV 解析，首行表头映射为 Record，不绑定具体实体。零依赖。",
+    "dependencies": [],
+    "registry_dependencies": [],
+    "files": [
+      {
+        "path": "files/csv-import.ts",
+        "type": "registry:lib",
+        "target": "src/server/import/csv-import.ts",
+        "hash": null
+      }
+    ],
+    "css_vars": {},
+    "env_vars": {},
+    "meta_loom": {
+      "seam_id": "data.bulk_import",
+      "interface_sig": "function parseCsv(csv: string): ParsedRow[]",
+      "provenance": "platform",
+      "health": 0.7,
+      "content_hash": "sha256:362734d47c6baf7a",
+      "license": "MIT",
+      "ext_pkgs": [],
+      "tradeoffs": "通用 CSV 解析，首行表头→Record<string,string>，不绑定实体。适合任意表格导入；调用方自行映射到 model。"
+    }
+  },
+  "l0": {
+    "ref": "generic-csv-import",
+    "seam_id": "data.bulk_import",
+    "summary": "parseCsv 通用 CSV 解析，首行表头映射为 Record，不绑定具体实体。零依赖。",
+    "deps": [],
+    "loc": 51,
+    "health": 0.7,
+    "provenance": "platform",
+    "content_hash": "sha256:362734d47c6baf7a"
+  },
+  "l1": {
+    "ref": "generic-csv-import",
+    "content_hash": "sha256:362734d47c6baf7a",
+    "exports": [
+      {
+        "name": "parseCsv",
+        "signature": "function parseCsv(csv: string): ParsedRow[]",
+        "kind": "function"
+      }
+    ],
+    "types": [],
+    "imports": []
+  },
+  "barrel_snippet": {}
+}

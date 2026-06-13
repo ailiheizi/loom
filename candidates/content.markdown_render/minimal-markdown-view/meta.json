@@ -1,0 +1,54 @@
+{
+  "registry_item": {
+    "name": "minimal-markdown-view",
+    "type": "registry:lib",
+    "title": "minimal-markdown-view",
+    "description": "极简 markdown 渲染，只处理标题与段落，不解析 inline，最安全最轻。零依赖。",
+    "dependencies": [],
+    "registry_dependencies": [],
+    "files": [
+      {
+        "path": "files/markdown-view.tsx",
+        "type": "registry:lib",
+        "target": "src/app/_components/markdown-view.tsx",
+        "hash": null
+      }
+    ],
+    "css_vars": {},
+    "env_vars": {},
+    "meta_loom": {
+      "seam_id": "content.markdown_render",
+      "interface_sig": "function MarkdownView({ source }: MarkdownViewProps)",
+      "provenance": "platform",
+      "health": 0.7,
+      "content_hash": "sha256:41e07146ee476274",
+      "license": "MIT",
+      "ext_pkgs": [],
+      "tradeoffs": "极简 markdown，只渲染标题+段落、不解析 inline。最安全最轻；功能也最少，适合可信度低或只需基础排版。"
+    }
+  },
+  "l0": {
+    "ref": "minimal-markdown-view",
+    "seam_id": "content.markdown_render",
+    "summary": "极简 markdown 渲染，只处理标题与段落，不解析 inline，最安全最轻。零依赖。",
+    "deps": [],
+    "loc": 31,
+    "health": 0.7,
+    "provenance": "platform",
+    "content_hash": "sha256:41e07146ee476274"
+  },
+  "l1": {
+    "ref": "minimal-markdown-view",
+    "content_hash": "sha256:41e07146ee476274",
+    "exports": [
+      {
+        "name": "MarkdownView",
+        "signature": "function MarkdownView({ source }: MarkdownViewProps)",
+        "kind": "component"
+      }
+    ],
+    "types": [],
+    "imports": []
+  },
+  "barrel_snippet": {}
+}

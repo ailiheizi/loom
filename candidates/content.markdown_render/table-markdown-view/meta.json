@@ -1,0 +1,54 @@
+{
+  "registry_item": {
+    "name": "table-markdown-view",
+    "type": "registry:lib",
+    "title": "table-markdown-view",
+    "description": "支持 GFM 表格的 markdown 渲染，解析 | a | b | 表格。零依赖正则。",
+    "dependencies": [],
+    "registry_dependencies": [],
+    "files": [
+      {
+        "path": "files/markdown-view.tsx",
+        "type": "registry:lib",
+        "target": "src/app/_components/markdown-view.tsx",
+        "hash": null
+      }
+    ],
+    "css_vars": {},
+    "env_vars": {},
+    "meta_loom": {
+      "seam_id": "content.markdown_render",
+      "interface_sig": "function MarkdownView({ source }: MarkdownViewProps)",
+      "provenance": "platform",
+      "health": 0.7,
+      "content_hash": "sha256:f98226c586ad79e5",
+      "license": "MIT",
+      "ext_pkgs": [],
+      "tradeoffs": "支持 GFM 表格的 markdown 渲染。适合带表格的文档/笔记；inline 渲染走 dangerouslySetInnerHTML，不可信内容需 sanitize。"
+    }
+  },
+  "l0": {
+    "ref": "table-markdown-view",
+    "seam_id": "content.markdown_render",
+    "summary": "支持 GFM 表格的 markdown 渲染，解析 | a | b | 表格。零依赖正则。",
+    "deps": [],
+    "loc": 65,
+    "health": 0.7,
+    "provenance": "platform",
+    "content_hash": "sha256:f98226c586ad79e5"
+  },
+  "l1": {
+    "ref": "table-markdown-view",
+    "content_hash": "sha256:f98226c586ad79e5",
+    "exports": [
+      {
+        "name": "MarkdownView",
+        "signature": "function MarkdownView({ source }: MarkdownViewProps)",
+        "kind": "component"
+      }
+    ],
+    "types": [],
+    "imports": []
+  },
+  "barrel_snippet": {}
+}

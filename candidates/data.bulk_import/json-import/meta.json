@@ -1,0 +1,54 @@
+{
+  "registry_item": {
+    "name": "json-import",
+    "type": "registry:lib",
+    "title": "json-import",
+    "description": "parseJsonImport 解析 JSON 数组批量导入，值转字符串。零依赖。",
+    "dependencies": [],
+    "registry_dependencies": [],
+    "files": [
+      {
+        "path": "files/json-import.ts",
+        "type": "registry:lib",
+        "target": "src/server/import/json-import.ts",
+        "hash": null
+      }
+    ],
+    "css_vars": {},
+    "env_vars": {},
+    "meta_loom": {
+      "seam_id": "data.bulk_import",
+      "interface_sig": "function parseJsonImport(json: string): ParsedRow[]",
+      "provenance": "platform",
+      "health": 0.7,
+      "content_hash": "sha256:bc64a3084935b70a",
+      "license": "MIT",
+      "ext_pkgs": [],
+      "tradeoffs": "JSON 数组批量导入，值转字符串。适合从 API/导出的 JSON 导入；非数组/非法 JSON 返回空。"
+    }
+  },
+  "l0": {
+    "ref": "json-import",
+    "seam_id": "data.bulk_import",
+    "summary": "parseJsonImport 解析 JSON 数组批量导入，值转字符串。零依赖。",
+    "deps": [],
+    "loc": 25,
+    "health": 0.7,
+    "provenance": "platform",
+    "content_hash": "sha256:bc64a3084935b70a"
+  },
+  "l1": {
+    "ref": "json-import",
+    "content_hash": "sha256:bc64a3084935b70a",
+    "exports": [
+      {
+        "name": "parseJsonImport",
+        "signature": "function parseJsonImport(json: string): ParsedRow[]",
+        "kind": "function"
+      }
+    ],
+    "types": [],
+    "imports": []
+  },
+  "barrel_snippet": {}
+}

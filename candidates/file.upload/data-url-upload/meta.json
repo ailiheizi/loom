@@ -1,0 +1,54 @@
+{
+  "registry_item": {
+    "name": "data-url-upload",
+    "type": "registry:lib",
+    "title": "data-url-upload",
+    "description": "uploadFile 把 File 读成 base64 data URL，零后端零依赖，适合 MVP/小文件预览。",
+    "dependencies": [],
+    "registry_dependencies": [],
+    "files": [
+      {
+        "path": "files/data-url-upload.ts",
+        "type": "registry:lib",
+        "target": "src/lib/upload/data-url-upload.ts",
+        "hash": null
+      }
+    ],
+    "css_vars": {},
+    "env_vars": {},
+    "meta_loom": {
+      "seam_id": "file.upload",
+      "interface_sig": "async function uploadFile(file: File): Promise<{ url: string }>",
+      "provenance": "platform",
+      "health": 0.7,
+      "content_hash": "sha256:43c5931f79ec8647",
+      "license": "MIT",
+      "ext_pkgs": [],
+      "tradeoffs": "base64 data URL 上传，零后端零依赖。适合 MVP/头像等小文件预览；不持久化、大文件会撑爆内存。"
+    }
+  },
+  "l0": {
+    "ref": "data-url-upload",
+    "seam_id": "file.upload",
+    "summary": "uploadFile 把 File 读成 base64 data URL，零后端零依赖，适合 MVP/小文件预览。",
+    "deps": [],
+    "loc": 13,
+    "health": 0.7,
+    "provenance": "platform",
+    "content_hash": "sha256:43c5931f79ec8647"
+  },
+  "l1": {
+    "ref": "data-url-upload",
+    "content_hash": "sha256:43c5931f79ec8647",
+    "exports": [
+      {
+        "name": "uploadFile",
+        "signature": "async function uploadFile(file: File): Promise<{ url: string }>",
+        "kind": "function"
+      }
+    ],
+    "types": [],
+    "imports": []
+  },
+  "barrel_snippet": {}
+}

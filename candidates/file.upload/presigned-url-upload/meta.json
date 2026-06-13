@@ -1,0 +1,54 @@
+{
+  "registry_item": {
+    "name": "presigned-url-upload",
+    "type": "registry:lib",
+    "title": "presigned-url-upload",
+    "description": "uploadFile 把文件 PUT 到预签名 URL（S3/R2/OSS 模式），浏览器原生 fetch，零依赖。",
+    "dependencies": [],
+    "registry_dependencies": [],
+    "files": [
+      {
+        "path": "files/presigned-url-upload.ts",
+        "type": "registry:lib",
+        "target": "src/lib/upload/presigned-url-upload.ts",
+        "hash": null
+      }
+    ],
+    "css_vars": {},
+    "env_vars": {},
+    "meta_loom": {
+      "seam_id": "file.upload",
+      "interface_sig": "async function uploadFile(",
+      "provenance": "platform",
+      "health": 0.7,
+      "content_hash": "sha256:624613a94c92bb83",
+      "license": "MIT",
+      "ext_pkgs": [],
+      "tradeoffs": "PUT 到预签名 URL（S3/R2/OSS）。适合生产对象存储；需后端先签发 URL，本函数只管上传动作。"
+    }
+  },
+  "l0": {
+    "ref": "presigned-url-upload",
+    "seam_id": "file.upload",
+    "summary": "uploadFile 把文件 PUT 到预签名 URL（S3/R2/OSS 模式），浏览器原生 fetch，零依赖。",
+    "deps": [],
+    "loc": 20,
+    "health": 0.7,
+    "provenance": "platform",
+    "content_hash": "sha256:624613a94c92bb83"
+  },
+  "l1": {
+    "ref": "presigned-url-upload",
+    "content_hash": "sha256:624613a94c92bb83",
+    "exports": [
+      {
+        "name": "uploadFile",
+        "signature": "async function uploadFile(",
+        "kind": "function"
+      }
+    ],
+    "types": [],
+    "imports": []
+  },
+  "barrel_snippet": {}
+}

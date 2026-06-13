@@ -1,0 +1,29 @@
+{
+  "idea_id": "blog-platform",
+  "title": "带 GitHub 登录的博客平台",
+  "description": "一个博客平台：作者用 GitHub 账号登录，登录后能对文章（Post）做增删改查，文章列表用表格展示，文章正文支持 markdown 渲染。",
+  "ecosystem": "node-ts-web",
+  "core_ref": "create-t3-app@7.39.x",
+  "capability_intents": [
+    {
+      "intent": "作者用 GitHub 账号 OAuth 登录",
+      "seam_id": "auth.oauth_provider",
+      "notes": "NextAuth v5 GitHub provider"
+    },
+    {
+      "intent": "对文章 Post 资源做增删改查（list/get/create/update/delete）",
+      "seam_id": "data.crud_resource",
+      "notes": "tRPC router，注册进 appRouter"
+    },
+    {
+      "intent": "用数据表格展示文章列表",
+      "seam_id": "ui.data_table",
+      "notes": "React 表格组件"
+    },
+    {
+      "intent": "文章正文 markdown 渲染为 HTML",
+      "seam_id": "content.markdown_render",
+      "notes": "markdown 渲染组件"
+    }
+  ]
+}

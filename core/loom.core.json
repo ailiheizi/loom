@@ -18,7 +18,10 @@
       "target": "src/server/auth/providers/",
       "compat_range": "next-auth@^5",
       "cardinality": "many",
-      "env_vars": ["AUTH_<PROVIDER>_ID", "AUTH_<PROVIDER>_SECRET"]
+      "env_vars": [
+        "AUTH_<PROVIDER>_ID",
+        "AUTH_<PROVIDER>_SECRET"
+      ]
     },
     {
       "seam_id": "data.crud_resource",
@@ -96,6 +99,22 @@
         "op": "file-add"
       },
       "target": "src/server/import/",
+      "compat_range": null,
+      "cardinality": "one",
+      "env_vars": []
+    },
+    {
+      "seam_id": "file.upload",
+      "kind": "lib-function",
+      "signature": "(file: File) => Promise<{url: string}>  把文件上传并返回可访问 URL",
+      "signature_ref": null,
+      "barrel": {
+        "file": "src/lib/",
+        "anchor_import": null,
+        "anchor_register": null,
+        "op": "file-add"
+      },
+      "target": "src/lib/upload/",
       "compat_range": null,
       "cardinality": "one",
       "env_vars": []

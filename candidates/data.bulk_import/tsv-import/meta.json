@@ -1,0 +1,54 @@
+{
+  "registry_item": {
+    "name": "tsv-import",
+    "type": "registry:lib",
+    "title": "tsv-import",
+    "description": "parseTsvImport 制表符分隔导入，适合 Excel/Sheets 粘贴。零依赖。",
+    "dependencies": [],
+    "registry_dependencies": [],
+    "files": [
+      {
+        "path": "files/tsv-import.ts",
+        "type": "registry:lib",
+        "target": "src/server/import/tsv-import.ts",
+        "hash": null
+      }
+    ],
+    "css_vars": {},
+    "env_vars": {},
+    "meta_loom": {
+      "seam_id": "data.bulk_import",
+      "interface_sig": "function parseTsvImport(tsv: string): ParsedRow[]",
+      "provenance": "platform",
+      "health": 0.7,
+      "content_hash": "sha256:955248b82ffa5011",
+      "license": "MIT",
+      "ext_pkgs": [],
+      "tradeoffs": "TSV 制表符分隔导入。适合 Excel/Sheets 复制粘贴；字段含制表符会错列。"
+    }
+  },
+  "l0": {
+    "ref": "tsv-import",
+    "seam_id": "data.bulk_import",
+    "summary": "parseTsvImport 制表符分隔导入，适合 Excel/Sheets 粘贴。零依赖。",
+    "deps": [],
+    "loc": 21,
+    "health": 0.7,
+    "provenance": "platform",
+    "content_hash": "sha256:955248b82ffa5011"
+  },
+  "l1": {
+    "ref": "tsv-import",
+    "content_hash": "sha256:955248b82ffa5011",
+    "exports": [
+      {
+        "name": "parseTsvImport",
+        "signature": "function parseTsvImport(tsv: string): ParsedRow[]",
+        "kind": "function"
+      }
+    ],
+    "types": [],
+    "imports": []
+  },
+  "barrel_snippet": {}
+}

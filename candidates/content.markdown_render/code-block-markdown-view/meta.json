@@ -1,0 +1,54 @@
+{
+  "registry_item": {
+    "name": "code-block-markdown-view",
+    "type": "registry:lib",
+    "title": "code-block-markdown-view",
+    "description": "支持 ``` 代码块的 markdown 渲染，代码块内原样转义。零依赖。",
+    "dependencies": [],
+    "registry_dependencies": [],
+    "files": [
+      {
+        "path": "files/markdown-view.tsx",
+        "type": "registry:lib",
+        "target": "src/app/_components/markdown-view.tsx",
+        "hash": null
+      }
+    ],
+    "css_vars": {},
+    "env_vars": {},
+    "meta_loom": {
+      "seam_id": "content.markdown_render",
+      "interface_sig": "function MarkdownView({ source }: MarkdownViewProps)",
+      "provenance": "platform",
+      "health": 0.7,
+      "content_hash": "sha256:247c839b5768e18b",
+      "license": "MIT",
+      "ext_pkgs": [],
+      "tradeoffs": "支持 ``` 代码块的 markdown 渲染，代码原样转义。适合技术博客/文档；无语法高亮（要高亮需引 highlight.js 等）。"
+    }
+  },
+  "l0": {
+    "ref": "code-block-markdown-view",
+    "seam_id": "content.markdown_render",
+    "summary": "支持 ``` 代码块的 markdown 渲染，代码块内原样转义。零依赖。",
+    "deps": [],
+    "loc": 56,
+    "health": 0.7,
+    "provenance": "platform",
+    "content_hash": "sha256:247c839b5768e18b"
+  },
+  "l1": {
+    "ref": "code-block-markdown-view",
+    "content_hash": "sha256:247c839b5768e18b",
+    "exports": [
+      {
+        "name": "MarkdownView",
+        "signature": "function MarkdownView({ source }: MarkdownViewProps)",
+        "kind": "component"
+      }
+    ],
+    "types": [],
+    "imports": []
+  },
+  "barrel_snippet": {}
+}

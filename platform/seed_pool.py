@@ -51,6 +51,25 @@ SEED: list[tuple[str, str, str, str, str]] = [
      "rowsToMarkdown/toMarkdownBlob 导出 GFM 表格，适合贴进 README/issue/文档。零依赖。", "src/server/export/markdown-export.ts"),
     ("report.custom_export/excel-csv-export.ts", "report.custom_export", "excel-csv-export-fn",
      "rowsToExcelCsv/toExcelCsvBlob 带 UTF-8 BOM 的 CSV，解决 Excel 中文乱码。零依赖。", "src/server/export/excel-csv-export.ts"),
+    # ── content.markdown_render（落 src/app/_components/markdown-view.tsx）规模化扩池 ──
+    ("content.markdown_render/table-markdown-view.tsx", "content.markdown_render", "table-markdown-view",
+     "支持 GFM 表格的 markdown 渲染，解析 | a | b | 表格。零依赖正则。", "src/app/_components/markdown-view.tsx"),
+    ("content.markdown_render/code-block-markdown-view.tsx", "content.markdown_render", "code-block-markdown-view",
+     "支持 ``` 代码块的 markdown 渲染，代码块内原样转义。零依赖。", "src/app/_components/markdown-view.tsx"),
+    ("content.markdown_render/minimal-markdown-view.tsx", "content.markdown_render", "minimal-markdown-view",
+     "极简 markdown 渲染，只处理标题与段落，不解析 inline，最安全最轻。零依赖。", "src/app/_components/markdown-view.tsx"),
+    # ── data.bulk_import（落 src/server/import/）规模化扩池 ──
+    ("data.bulk_import/generic-csv-import.ts", "data.bulk_import", "generic-csv-import",
+     "parseCsv 通用 CSV 解析，首行表头映射为 Record，不绑定具体实体。零依赖。", "src/server/import/csv-import.ts"),
+    ("data.bulk_import/json-import.ts", "data.bulk_import", "json-import",
+     "parseJsonImport 解析 JSON 数组批量导入，值转字符串。零依赖。", "src/server/import/json-import.ts"),
+    ("data.bulk_import/tsv-import.ts", "data.bulk_import", "tsv-import",
+     "parseTsvImport 制表符分隔导入，适合 Excel/Sheets 粘贴。零依赖。", "src/server/import/tsv-import.ts"),
+    # ── file.upload（新 seam，落 src/lib/upload/）规模化加新 seam ──
+    ("file.upload/data-url-upload.ts", "file.upload", "data-url-upload",
+     "uploadFile 把 File 读成 base64 data URL，零后端零依赖，适合 MVP/小文件预览。", "src/lib/upload/data-url-upload.ts"),
+    ("file.upload/presigned-url-upload.ts", "file.upload", "presigned-url-upload",
+     "uploadFile 把文件 PUT 到预签名 URL（S3/R2/OSS 模式），浏览器原生 fetch，零依赖。", "src/lib/upload/presigned-url-upload.ts"),
 ]
 
 

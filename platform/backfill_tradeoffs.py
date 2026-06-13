@@ -47,7 +47,16 @@ TRADEOFFS: dict[str, str] = {
     "post-router": "tRPC router，Post 资源 CRUD（t3 经典示例）。适合博客/内容类；字段固定为 Post 语义，其他资源需改写。",
     # ── 其他 ──
     "markdown-view": "Markdown 渲染组件。适合内容展示；具体依赖见 deps，注意 XSS（渲染不可信内容需 sanitize）。",
-    "csv-contacts-import": "CSV 批量导入（解析 + 入库）。适合联系人/通讯录类批量录入；字段映射偏 Contact 语义，其他实体需调整。",
+    "table-markdown-view": "支持 GFM 表格的 markdown 渲染。适合带表格的文档/笔记；inline 渲染走 dangerouslySetInnerHTML，不可信内容需 sanitize。",
+    "code-block-markdown-view": "支持 ``` 代码块的 markdown 渲染，代码原样转义。适合技术博客/文档；无语法高亮（要高亮需引 highlight.js 等）。",
+    "minimal-markdown-view": "极简 markdown，只渲染标题+段落、不解析 inline。最安全最轻；功能也最少，适合可信度低或只需基础排版。",
+    "csv-contacts-import": "CSV 批量导入，字段固定 name/description（Contact 语义）。适合通讯录类；其他实体需改字段映射。",
+    "generic-csv-import": "通用 CSV 解析，首行表头→Record<string,string>，不绑定实体。适合任意表格导入；调用方自行映射到 model。",
+    "json-import": "JSON 数组批量导入，值转字符串。适合从 API/导出的 JSON 导入；非数组/非法 JSON 返回空。",
+    "tsv-import": "TSV 制表符分隔导入。适合 Excel/Sheets 复制粘贴；字段含制表符会错列。",
+    # ── file.upload（新 seam）──
+    "data-url-upload": "base64 data URL 上传，零后端零依赖。适合 MVP/头像等小文件预览；不持久化、大文件会撑爆内存。",
+    "presigned-url-upload": "PUT 到预签名 URL（S3/R2/OSS）。适合生产对象存储；需后端先签发 URL，本函数只管上传动作。",
 }
 
 
