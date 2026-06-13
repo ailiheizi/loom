@@ -56,8 +56,9 @@ LOOM_LLM_PROVIDER=deepseek LOOM_LLM_API_KEY=$KEY \
 
 ### 安装 MCP
 
-项目根 `.mcp.json` 已配好 loom server（`uv run --directory platform python mcp_server.py`）。
-在 Claude Code 里：项目级 `.mcp.json` 会被自动发现；首次需批准。验证：`loom_propose` 等三工具可见。
+- **Claude Code**：项目根 `.mcp.json` 已配好 loom server，用 `${CLAUDE_PROJECT_DIR}/platform` 绝对定位（cwd 无关，健壮）。项目级 `.mcp.json` 会被自动发现；首次需批准。验证：`loom_propose` 等三工具可见。
+- **opencode**：项目根 `opencode.json` 配好 loom（相对 `platform`）。`opencode mcp list` 应显示 `✓ loom connected`。**注意**：opencode 读项目级配置依赖在项目根启动（cwd 漂到子目录会报 MCP server not found）。
+- 两个配置文件独立，各自客户端读各自的，互不影响。
 
 ## 诚实边界（务必告知用户）
 

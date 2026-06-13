@@ -2,7 +2,7 @@
   "mcpServers": {
     "loom": {
       "command": "uv",
-      "args": ["run", "--directory", "platform", "python", "mcp_server.py"],
+      "args": ["run", "--directory", "${CLAUDE_PROJECT_DIR}/platform", "python", "mcp_server.py"],
       "env": {}
     }
   }
