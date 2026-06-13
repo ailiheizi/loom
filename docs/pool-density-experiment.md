@@ -1,8 +1,9 @@
 # 验池实验结果（Pool-Density Validation）
 
-> 日期：2026-06-12
+> 日期：2026-06-12（多样本复测 2026-06-14，见末尾）
 > 目的：验证 agent-native 愿景的盈亏地基——"候选池够密时，pick 现成组件是否真比从零 generate 净赢"。
-> 结论：**GO（强信号）**。灌密后组装臂以 ~1/17 成本干净收敛，从零臂烧 4 轮修复仍不收敛。
+> 结论：**GO（强信号）**。多样本复测：组装省 AI output ≈ 91%（中位数比 11.7×），收敛率组装 12/12 vs 从零 1/12。
+> 注：下方初版「结果 3」是单样本（h\*=0.058），数字偏高且有脚本 bug；以末尾多样本复测为准。
 
 ## 实验设计
 
@@ -76,3 +77,21 @@
 
 1. `platform/run_select.py`：顶部无条件 `import anthropic`，导致 deepseek 模式也强依赖 anthropic 包（且会走错 Python 环境崩溃）。改为惰性导入，只在 anthropic provider 分支内 import。
 2. `client/src/llm.ts`：原仅支持 Anthropic SDK。新增 OpenAI 兼容分支（`LOOM_LLM_PROVIDER=deepseek|openai` → fetch /v1/chat/completions），零新依赖，`complete()` 签名不变，三处调用方无需改动。这一步把"client 侧 LLM 可换 provider"落地了，也为后续"LLM 翻转/可插拔"铺路。
+
+## 多样本复测（2026-06-14，修脚本 bug 后）
+
+初版 h\*=0.058 是单样本，且 assembly 臂 token 计入有 bug（plan budget=0）。修复后做 4 想法 × 3 次 = 24 跑的多样本复测（`platform/bench_report.py` 汇总 `.work/bench-archive/`）：
+
+| 想法 | 组装 out 中位 | 从零 out 中位 | 组装收敛 | 从零收敛 |
+|---|---|---|---|---|
+| saas-admin | 352 | 3303 | 3/3 | 1/3 |
+| task-tracker | 348 | 4139 | 3/3 | 0/3 |
+| contact-book | 318 | 3698 | 3/3 | 0/3 |
+| blog | 326 | 5278 | 3/3 | 0/3 |
+| **全样本中位** | **346** | **4058** | **12/12** | **1/12** |
+
+结论（替换单点 95%）：
+- 组装省 AI output **≈ 91%**（中位数比 11.7×），多样本中位数而非单点。
+- **收敛率是更硬的信号**：组装 12/12，从零 1/12。从零基本做不出能编译项目。
+- 从零 out 单次波动 2136~7306，故必须多样本中位数。
+- 修复的脚本 bug：① t9_runner assembly 臂硬读固定 plan 文件名→按 idea_id 隔离 ② run_select 用系统 python→uv run ③ 删 instructor 误删 openai（deepseek select 依赖）→显式声明。
