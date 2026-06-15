@@ -156,11 +156,47 @@ def _env() -> dict:
     return dict(os.environ)
 
 
+@mcp.tool()
+def loom_get_files(plan_json: str) -> str:
+    """把 AssemblyPlan 物化成文件清单（纯数据，server 不跑 Node、不装依赖）。
+
+    agent-native 轻量物化：server 只返回"该写哪些文件 + 什么内容 + 装哪些依赖"，
+    由宿主 agent（你）在用户本地写盘 → pnpm install → 填 .env → tsc 自验。
+    server 零 Node、零存储、零 gate。
+
+    入参 plan_json：loom_plan_from_choices 的输出。
+    返回：JSON 文本 {idea_id, core_ref, files:[{path,content}], deps:[{name,version}],
+      env_vars:[...], prisma_models:[...], notes:[...]}。
+      - files：写盘即得完整 create-t3-app 项目（含 base + 选中组件 + barrel/env/prisma 注入）
+      - deps：用户 pnpm add 这些（候选声明的外部依赖；多数候选零依赖）
+      - notes：generate 接缝等需宿主 agent 补写的提示
+    用户侧步骤：写所有 files → pnpm install（+ pnpm add deps）→ 填 .env 真值 → next dev。
+    """
+    from get_files import get_files
+
+    plan = c.AssemblyPlan.model_validate_json(plan_json)
+    result = get_files(plan)
+    return json.dumps(result, ensure_ascii=False)
+
+
 if __name__ == "__main__":
-    # 启动预热：把 fastembed 模型加载移到 server 启动期，避免首次工具调用超时。
+    import os
+
+    # 启动预热：把 embedding 模型加载移到 server 启动期，避免首次工具调用超时。
     try:
         from propose import warmup
         warmup()
     except Exception:
         pass  # 预热失败不阻塞启动，首次调用会懒加载
-    mcp.run(transport="stdio")
+
+    # transport：LOOM_TRANSPORT=http 时走 streamable-http（远程托管，配 cloudflared），
+    # 否则默认 stdio（本地由宿主 agent 拉起）。
+    transport = os.environ.get("LOOM_TRANSPORT", "stdio").lower()
+    if transport == "http":
+        host = os.environ.get("LOOM_HOST", "127.0.0.1")
+        port = int(os.environ.get("LOOM_PORT", "8000"))
+        mcp.settings.host = host
+        mcp.settings.port = port
+        mcp.run(transport="streamable-http")
+    else:
+        mcp.run(transport="stdio")
