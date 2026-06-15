@@ -32,7 +32,30 @@ from plan_from_choices import plan_from_choices as _plan_from_choices
 ROOT = Path(__file__).resolve().parent.parent
 WORK = ROOT / ".work"
 
-mcp = FastMCP("loom")
+# HTTP 远程托管时，请求经 cloudflared 转发，Host header 是隧道域名，会被 MCP 默认的
+# DNS rebinding 防护拒绝（Invalid Host header）。此处按需放开：
+#  - LOOM_ALLOWED_HOSTS="a.com,b.com" → 仅允许这些 host（推荐生产用，配固定域名）
+#  - 未设且 LOOM_TRANSPORT=http → 关闭 DNS rebinding 防护（入口已有 cloudflared + 用户自带 key）
+def _build_mcp() -> FastMCP:
+    import os
+
+    if os.environ.get("LOOM_TRANSPORT", "stdio").lower() != "http":
+        return FastMCP("loom")
+    from mcp.server.transport_security import TransportSecuritySettings
+
+    allowed = [h.strip() for h in os.environ.get("LOOM_ALLOWED_HOSTS", "").split(",") if h.strip()]
+    if allowed:
+        sec = TransportSecuritySettings(
+            enable_dns_rebinding_protection=True,
+            allowed_hosts=allowed + [f"{h}:*" for h in allowed],
+            allowed_origins=[f"https://{h}" for h in allowed],
+        )
+    else:
+        sec = TransportSecuritySettings(enable_dns_rebinding_protection=False)
+    return FastMCP("loom", transport_security=sec)
+
+
+mcp = _build_mcp()
 
 
 def _write_idea_tmp(idea_json: str) -> Path:
