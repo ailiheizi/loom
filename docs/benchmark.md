@@ -43,7 +43,10 @@
 ## 诚实边界
 
 - **单模型 deepseek-chat**。换更强模型（claude/gpt）从零臂收敛率很可能改善——0/4 是 deepseek 的能力上限，不全是"从零"范式本身的锅。换言之：模型越强，Loom 的相对优势越小。
-- **"收敛" = tsc 0 error，非 next build / 真运行**。运行期错误（RSC 边界、路由）这层未自动验证。
+- **"收敛" = tsc 0 error**；并已端到端验证 **next build 通过**（见下）。
+  - 验证（2026-06-16，Linux/Orange Pi ARM64）：组装产物（project-manager，含 `app/dashboard/page.tsx`）走真实用户路径 `pnpm install` → `prisma generate` → `next build`，**全部成功**：`✓ Compiled successfully in 78s`，BUILD_EXIT=0，路由表含 `/`、`/dashboard`、`/api/trpc`、`/api/auth`。即不止 tsc 0 错，是真能 build 出可部署的生产产物。
+  - 顺带修一个真 bug：t3-base 自带的 `pnpm-workspace.yaml` 是 create-t3-app 未填占位，会让 pnpm 进 workspace 模式 → `install` 报 "packages field missing" 直接失败（真实用户必踩）。get_files 现移除该文件 + 补 `.npmrc enable-pre-post-scripts`。
+  - 仍未自动化：`next dev` 起来走核心 flow（登录/CRUD 实际点击）、OAuth 真登录——这层要真凭据+人工。
 - **thrash 止损 ≠ 修到尽头**。理论上无限轮 + 人工介入可能修好从零的产物，但那不是现实工作流。
 - **样本小**：4 想法、单域、各 1 次（deepseek 有随机性，单次有波动）。这是量级参考，非统计严谨基准。
 - 之前 README 的"省 91%"是旧的单样本 + 从零未充分修复的口径，已被本文档取代。

@@ -157,6 +157,16 @@ def get_files(plan: c.AssemblyPlan) -> dict:
     seam_specs = {s["seam_id"]: s for s in core["seams"]}
 
     files = _read_base_files()
+
+    # 删除 t3-base 自带的 pnpm-workspace.yaml：原文是 create-t3-app 留的未填占位
+    # （allowBuilds 值是字面 "set this to true or false"）。更关键——该文件存在本身就让
+    # pnpm 进入 workspace 模式、要求 packages 字段，对 Loom 生成的【独立项目】无意义且
+    # 导致 pnpm install 直接失败（packages field missing）。独立项目不需要 workspace 配置，
+    # 直接移除；prisma 等 build script 用 .npmrc 的 enable-pre-post-scripts 或用户按需放行。
+    files.pop("pnpm-workspace.yaml", None)
+    # 补一个 .npmrc 允许构建脚本（prisma/esbuild 的 postinstall），避免 pnpm 默认拦截
+    if ".npmrc" not in files:
+        files[".npmrc"] = "enable-pre-post-scripts=true\n"
     deps: list[dict] = []
     env_vars: list[str] = []
     notes: list[str] = []
