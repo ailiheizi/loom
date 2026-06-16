@@ -61,15 +61,48 @@ AI output token（中位数）与收敛率：
 
 ## 怎么用
 
-见 [`INSTALL.md`](./INSTALL.md)（AI 自助安装指南）。装好后：
+### 方式一：零安装，连远程服务（推荐）
+
+不装任何东西。在 Claude Code / Cursor 等支持 MCP 的 agent 里，加一个远程 MCP server：
+
+```jsonc
+// .mcp.json（Claude Code）或对应配置
+{
+  "mcpServers": {
+    "loom": { "type": "http", "url": "https://loom.alhz.org/mcp" }
+  }
+}
+```
+
+或用命令行注册（更省事，不易写错）：
 
 ```bash
-# 一句话想法 → starter
+claude mcp add --transport http loom https://loom.alhz.org/mcp
+```
+
+然后直接对 agent 说想法，例如「用 loom 搭一个带 Google 登录、能增删改查项目、有表格和表单的后台」。agent 会：
+
+1. 调 `loom_propose` → 每个能力 seam 返回 2-3 个候选 + 架构取舍
+2. 你（或 agent）逐个挑 → `loom_plan_from_choices` 拼成 plan
+3. `loom_get_files` → 返回完整项目文件清单（含 `app/dashboard/page.tsx` 把组件接好）
+4. agent 把文件写到本地 → `pnpm install` → 填 `.env` 真实 key → `pnpm dev`
+
+server 只做检索 + 拼装（零 LLM、零 key、不跑你的代码），AI 的「选择」只花几十 token，
+代码由 server 返回现成的——这就是省 token 的来源。
+
+> 边界：产物「能编译能启动」≠ 功能完备。OAuth 需填真实凭据；server 用轻量词袋检索（速度优先），
+> 候选池覆盖 SaaS 后台/博客类想法（39 候选/10 接缝/2 域）。
+
+### 方式二：本地全自动（需自备环境 + key）
+
+见 [`INSTALL.md`](./INSTALL.md)。装好 Node/pnpm/Python/uv 后：
+
+```bash
 LOOM_LLM_PROVIDER=deepseek LOOM_LLM_API_KEY=sk-... \
   bash loom_assemble.sh ideas/<your-idea>.json <output-dir>
 ```
 
-或在 Claude Code 里用 [`.claude/skills/loom`](./.claude/skills/loom/SKILL.md) skill 一句话触发。
+或在 Claude Code 里用 [`.claude/skills/loom`](./.claude/skills/loom/SKILL.md) skill 触发。
 
 ## 结构
 
