@@ -74,6 +74,82 @@ def _read_base_files() -> dict[str, str]:
     return files
 
 
+def _resource_from_crud_ref(ref: str | None) -> tuple[str, str]:
+    """从 crud 候选 ref 推断 (router_key, ResourceName)。
+    project-crud-router → ('project', 'Project')；post-router → ('post', 'Post')；
+    其余泛型 → 默认 ('project', 'Project')（base 注册的 router key）。"""
+    if not ref:
+        return ("project", "Project")
+    base = ref.replace("-crud-router", "").replace("-router", "").replace("crud-", "")
+    base = base.split("-")[0] or "project"
+    if base in ("generic", "readonly"):
+        base = "project"
+    return (base, base[:1].upper() + base[1:])
+
+
+def _build_dashboard_page(selected: set[str], crud_ref: str | None) -> str | None:
+    """根据选中的 seam 确定性拼一个 dashboard 页面（零 LLM）。
+    需要 data.crud_resource 才有意义（页面要调 list/create）。组合 ui.layout/data_table/form。
+    返回 page.tsx 内容；若无 crud 则返回 None（无数据源，页面无意义）。"""
+    if "data.crud_resource" not in selected:
+        return None
+    router, Res = _resource_from_crud_ref(crud_ref)
+    has_table = "ui.data_table" in selected
+    has_form = "ui.form" in selected
+    has_layout = "ui.layout" in selected
+
+    imports = ['"use client";', "", 'import { api } from "~/trpc/react";']
+    if has_table:
+        imports.append('import { DataTable } from "~/app/_components/data-table";')
+    if has_form:
+        imports.append('import { FormView } from "~/app/_components/form-view";')
+    if has_layout:
+        imports.append('import { AppLayout } from "~/app/_components/app-layout";')
+
+    body = []
+    body.append(f"  const list = api.{router}.list.useQuery();")
+    body.append("  const utils = api.useUtils();")
+    if has_form:
+        body.append(f"  const create = api.{router}.create.useMutation({{")
+        body.append(f"    onSuccess: () => utils.{router}.list.invalidate(),")
+        body.append("  });")
+    body.append("")
+
+    inner = []
+    inner.append(f'      <h1 className="mb-6 text-2xl font-bold">{Res} 管理</h1>')
+    if has_form:
+        inner.append('      <section className="mb-8">')
+        inner.append('        <h2 className="mb-2 font-semibold">新建</h2>')
+        inner.append("        <FormView")
+        inner.append('          fields={[{ name: "name", label: "名称" }, { name: "description", label: "描述" }]}')
+        inner.append("          onSubmit={(data) => create.mutate({ name: data.name ?? \"\", description: data.description })}")
+        inner.append("        />")
+        inner.append("      </section>")
+    if has_table:
+        inner.append('      <section>')
+        inner.append('        <h2 className="mb-2 font-semibold">列表</h2>')
+        inner.append("        <DataTable")
+        inner.append('          columns={[{ key: "name", header: "名称" }, { key: "description", header: "描述" }]}')
+        inner.append("          rows={(list.data ?? []) as Record<string, unknown>[]}")
+        inner.append("        />")
+        inner.append("      </section>")
+    if not (has_table or has_form):
+        inner.append(f'      <pre>{{JSON.stringify(list.data, null, 2)}}</pre>')
+
+    inner_str = "\n".join(inner)
+    if has_layout:
+        wrapped = f'    <AppLayout title="{Res} 管理">\n{inner_str}\n    </AppLayout>'
+    else:
+        wrapped = f'    <main className="container mx-auto p-8">\n{inner_str}\n    </main>'
+
+    return (
+        "\n".join(imports) + "\n\n"
+        + "export default function DashboardPage() {\n"
+        + "\n".join(body) + "\n"
+        + "  return (\n" + wrapped + "\n  );\n}\n"
+    )
+
+
 def get_files(plan: c.AssemblyPlan) -> dict:
     """把 AssemblyPlan 物化成文件清单（纯数据，不跑 Node）。"""
     by_seam = load_candidates(CANDIDATES)
@@ -85,6 +161,8 @@ def get_files(plan: c.AssemblyPlan) -> dict:
     env_vars: list[str] = []
     notes: list[str] = []
     prisma_models: list[str] = []
+    selected: set[str] = set()
+    crud_ref: str | None = None
 
     for d in plan.seams:
         if d.action == c.SeamAction.SKIP:
@@ -98,6 +176,9 @@ def get_files(plan: c.AssemblyPlan) -> dict:
         if cand is None:
             notes.append(f"seam {d.seam_id}: 候选 {d.ref} 未找到")
             continue
+        selected.add(d.seam_id)
+        if d.seam_id == "data.crud_resource":
+            crud_ref = d.ref
 
         # 1. 落候选文件（registry_item.files 的 src → target）
         for f in cand.registry_item.files:
@@ -172,6 +253,13 @@ def get_files(plan: c.AssemblyPlan) -> dict:
         if k not in seen:
             seen.add(k)
             uniq_deps.append(dep)
+
+    # 8. 页面装配（确定性，零 LLM）：把选中组件接成一个 dashboard 页面，
+    #    解决"组件落盘但没页面用它们"——产物 /dashboard 打开即见列表+新建表单。
+    page = _build_dashboard_page(selected, crud_ref)
+    if page:
+        files["src/app/dashboard/page.tsx"] = page
+        notes.append("已生成 src/app/dashboard/page.tsx（接入选中的 UI 组件 + tRPC，访问 /dashboard 可用）")
 
     return {
         "idea_id": plan.idea_id,
