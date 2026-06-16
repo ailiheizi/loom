@@ -46,7 +46,8 @@
 - **"收敛" = tsc 0 error**；并已端到端验证 **next build 通过**（见下）。
   - 验证（2026-06-16，Linux/Orange Pi ARM64）：组装产物（project-manager，含 `app/dashboard/page.tsx`）走真实用户路径 `pnpm install` → `prisma generate` → `next build`，**全部成功**：`✓ Compiled successfully in 78s`，BUILD_EXIT=0，路由表含 `/`、`/dashboard`、`/api/trpc`、`/api/auth`。即不止 tsc 0 错，是真能 build 出可部署的生产产物。
   - 顺带修一个真 bug：t3-base 自带的 `pnpm-workspace.yaml` 是 create-t3-app 未填占位，会让 pnpm 进 workspace 模式 → `install` 报 "packages field missing" 直接失败（真实用户必踩）。get_files 现移除该文件 + 补 `.npmrc enable-pre-post-scripts`。
-  - 仍未自动化：`next dev` 起来走核心 flow（登录/CRUD 实际点击）、OAuth 真登录——这层要真凭据+人工。
+  - 仍未自动化：OAuth 真登录 flow（要真 Google/GitHub 凭据 + 人工点击）。
+  - 已验证 dev 可访问（2026-06-16，Linux/ARM64）：`next dev` 起来后 `curl` 首页 `/` = HTTP 200、`/dashboard` = HTTP 200 + 15990 字节真实 HTML（含 `<h1>…管理`、`<h2>新建`、表单、列表区——装配的 dashboard 页真渲染）。即从想法到"浏览器打开能看到带新建表单+列表的管理界面"端到端跑通，非 tsc 绿的空壳。
 - **thrash 止损 ≠ 修到尽头**。理论上无限轮 + 人工介入可能修好从零的产物，但那不是现实工作流。
 - **样本小**：4 想法、单域、各 1 次（deepseek 有随机性，单次有波动）。这是量级参考，非统计严谨基准。
 - 之前 README 的"省 91%"是旧的单样本 + 从零未充分修复的口径，已被本文档取代。
