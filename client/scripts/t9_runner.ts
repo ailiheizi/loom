@@ -39,6 +39,10 @@ const idea = JSON.parse(readFileSync(ideaPath, "utf-8"));
 
 console.log(`=== T9 runner arm=${arm} idea=${idea.idea_id} ===`);
 
+// 修复轮上限：默认 8（诚实 benchmark 用——让从零臂修到真收敛或 thrash 止损，
+// 不被人为的第 3 轮截断。repair.ts 的 thrash 判据保证改不动时提前 break，不会失控）。
+const MAX_ROUNDS = Number(process.env.LOOM_MAX_ROUNDS ?? "8");
+
 if (arm === "assembly") {
   // 选择阶段：现跑或读已有 plan
   if (doSelect) {
@@ -70,7 +74,7 @@ if (arm === "assembly") {
     outDir: resolve(root, `.work/t9-assembly-${idea.idea_id}`),
     metricsDir: resolve(root, ".work"),
     arm: "assembly",
-    maxRounds: 3,
+    maxRounds: MAX_ROUNDS,
     priorInputTok: selIn,
     priorOutputTok: selOut,
     disclosureInputTok: selIn,
@@ -92,7 +96,7 @@ if (arm === "assembly") {
     outDir: resolve(root, ".work/from_zero-assembly"),
     metricsDir: resolve(root, ".work"),
     arm: "from_zero",
-    maxRounds: 3,
+    maxRounds: MAX_ROUNDS,
     priorInputTok: fz.input_tok,
     priorOutputTok: fz.output_tok,
     disclosureInputTok: 0, // 从零臂无披露/选择期
