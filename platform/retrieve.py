@@ -41,9 +41,10 @@ class RetrievalHit:
 
 
 # 混合排序权重：接口契合度已是硬过滤，剩余信号里向量相似显式降权（docs：相似引噪声）
-W_VECTOR = 0.5
-W_DEP = 0.2
-W_HEALTH = 0.3
+W_VECTOR = 0.4
+W_DEP = 0.15
+W_HEALTH = 0.25
+W_TRUST = 0.2  # 信任加权：越用越靠前（flywheel.trust_score）
 
 
 class Retriever:
@@ -70,7 +71,17 @@ class Retriever:
             n_deps = len(cand.l0.deps or [])
             dep_penalty = 1.0 / (1.0 + n_deps)  # deps 越少越接近 1
             health = cand.l0.health or 0.0
-            score = W_VECTOR * vsim + W_DEP * dep_penalty + W_HEALTH * health
+            # 信任分：从 meta_loom 取（飞轮 record_reuse 写入），兜底 0.5
+            trust = getattr(cand.registry_item.meta_loom, "trust_score", None)
+            if trust is None:
+                # pydantic 可能 strip 了未定义字段，回退读原始 JSON
+                try:
+                    import json
+                    raw = json.loads((cand.dir / "meta.json").read_text(encoding="utf-8"))
+                    trust = float(raw.get("registry_item", {}).get("meta_loom", {}).get("trust_score", 0.5))
+                except Exception:
+                    trust = 0.5
+            score = W_VECTOR * vsim + W_DEP * dep_penalty + W_HEALTH * health + W_TRUST * float(trust)
             hits.append(
                 RetrievalHit(
                     ref=cand.ref, seam_id=seam_id, score=score, vector_sim=vsim,

@@ -11,6 +11,7 @@ dependencies = [
     "tree-sitter-typescript>=0.23.2",
     "mcp>=1.2",
     "openai>=1.0",
+    "tokenizers==0.22.2",
 ]
 
 [tool.uv]

@@ -180,6 +180,111 @@ def _env() -> dict:
 
 
 @mcp.tool()
+def loom_ingest(paths: list[str], seam_hint: str = "", description: str = "") -> str:
+    """把你刚写完的代码收录进 Loom 组件库,下次碰到类似需求时可直接复用。
+
+    你写完一个功能后调这个工具,Loom 会自动提取代码为可复用候选组件：
+    - 用 tree-sitter 解析导出符号(函数/组件/const)
+    - 存入候选池(hash 去重:同内容不重复入库)
+    - 下次 loom_propose 检索时就能找到它
+
+    入参：
+      paths：要收录的文件路径列表(相对于项目根，如 ["src/auth/oauth.ts"])
+      seam_hint：可选，建议的 seam 分类(如 "auth.oauth_provider")。不填则自动推断。
+      description：可选，一句话描述这个组件做什么。不填则从代码 exports 生成。
+    返回：JSON {ingested: [{ref, seam_id, path, status}], skipped: [...], errors: [...]}
+    """
+    import hashlib
+    from pathlib import Path as P
+    from ingest import ingest_file, extract_exports
+
+    results: dict = {"ingested": [], "skipped": [], "errors": []}
+
+    # 加载 core seam 定义(用于自动推断 seam + 拼 target)
+    core = json.loads((ROOT / "core" / "loom.core.json").read_text(encoding="utf-8"))
+    seam_specs = {s["seam_id"]: s for s in core["seams"]}
+    all_seam_ids = list(seam_specs.keys())
+
+    # 已有候选的 content_hash 集合(去重用)
+    existing_hashes: set[str] = set()
+    for meta_p in WORK.parent.joinpath("candidates").rglob("meta.json"):
+        try:
+            m = json.loads(meta_p.read_text(encoding="utf-8"))
+            h = m.get("l0", {}).get("content_hash")
+            if h:
+                existing_hashes.add(h)
+        except Exception:
+            continue
+
+    for file_path in paths:
+        src_p = ROOT / file_path
+        if not src_p.exists():
+            results["errors"].append({"path": file_path, "error": "文件不存在"})
+            continue
+        try:
+            src = src_p.read_text(encoding="utf-8")
+        except Exception as e:
+            results["errors"].append({"path": file_path, "error": str(e)[:100]})
+            continue
+
+        # hash 去重
+        content_hash = "sha256:" + hashlib.sha256(src.encode("utf-8")).hexdigest()[:16]
+        if content_hash in existing_hashes:
+            results["skipped"].append({"path": file_path, "reason": "hash 重复,已在库中"})
+            continue
+
+        # ref: 从文件名生成 kebab-case
+        stem = src_p.stem  # e.g. "DataTable" or "oauth-provider"
+        ref = "".join(f"-{c.lower()}" if c.isupper() else c for c in stem).strip("-").replace("_", "-")
+        if not ref:
+            ref = src_p.name.rsplit(".", 1)[0]
+
+        # seam 推断: seam_hint > infer_seam 自动推断
+        seam_id = ""
+        if seam_hint and seam_hint in seam_specs:
+            seam_id = seam_hint
+        else:
+            from infer_seam import infer_seam as _infer
+            # 用文件内容前 500 字符 + description 做推断
+            infer_text = (description + " " + src[:500]) if description else src[:500]
+            seam_id, _conf = _infer(infer_text)
+            if not seam_id:
+                # 兜底：默认 ui.data_table
+                seam_id = "ui.data_table"
+
+        # target: 从 seam 的 target + 文件名拼
+        spec = seam_specs.get(seam_id, {})
+        base_target = spec.get("target", "src/app/_components/")
+        target = base_target.rstrip("/") + "/" + src_p.name
+
+        # summary: description > exports 首个签名
+        exports = extract_exports(src)
+        summary = description or (
+            f"{exports[0].name}: {exports[0].signature[:80]}" if exports else f"组件 {ref}"
+        )
+
+        # 调已有的 ingest_file 入库
+        meta_path = ingest_file(
+            src_path=src_p,
+            seam_id=seam_id,
+            ref=ref,
+            summary=summary,
+            target=target,
+            candidates_root=ROOT / "candidates",
+        )
+        existing_hashes.add(content_hash)
+        results["ingested"].append({
+            "ref": ref,
+            "seam_id": seam_id,
+            "target": target,
+            "path": file_path,
+            "meta": str(meta_path.relative_to(ROOT)),
+        })
+
+    return json.dumps(results, ensure_ascii=False, indent=2)
+
+
+@mcp.tool()
 def loom_get_files(plan_json: str) -> str:
     """把 AssemblyPlan 物化成文件清单（纯数据，server 不跑 Node、不装依赖）。
 
