@@ -1,8 +1,18 @@
 [project]
-name = "loom-mcp"
+name = "loom-memory-mcp"
 version = "0.2.1"
 description = "Loom MCP — AI 编程的肌肉记忆,从你自己的代码库检索-组装新项目"
+readme = "README.md"
 requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [{ name = "ailiheizi" }]
+keywords = ["mcp", "code-assembly", "ai-coding", "scaffolding", "create-t3-app"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python :: 3.12",
+    "License :: OSI Approved :: MIT License",
+    "Topic :: Software Development :: Code Generators",
+]
 dependencies = [
     "pydantic>=2.0",
     "anthropic>=0.40",
@@ -15,7 +25,12 @@ dependencies = [
     "faiss-cpu>=1.14.3",
 ]
 
+[project.urls]
+Homepage = "https://github.com/ailiheizi/loom"
+Repository = "https://github.com/ailiheizi/loom"
+
 [project.scripts]
+loom-memory-mcp = "loom_entry:main"
 loom-mcp = "loom_entry:main"
 
 [tool.uv]
