@@ -38,9 +38,10 @@ DEFAULT_STORE_DIR = str(ROOT / ".work" / "loom-memory")
 
 # 检索排序里信任(worth)的权重。越大→飞轮越能让常用候选翻盘，但也越可能压过语义。
 # 可用 LOOM_W_TRUST 调（默认 0.4）。
-# 取 0.4 依据：eval_wtrust.py 扫描显示 0.2 时飞轮无力(语义分差~0.22 压过信任，靠后候选
-# reinforce 8 次仍 #8→#8)，0.5 起能翻盘(#8→#2)，1.0 一翻就霸榜。0.4 折中：够翻盘不霸榜。
-# 注：该值基于 StubEmbedder 词袋的分差，上 fastembed 后应重扫调优。
+# 取 0.4 依据：eval_wtrust.py 扫描。最优值依赖 embedder——
+#   StubEmbedder(词袋)：同 seam 候选语义分差大(~0.22)，0.2 翻不动(#8→#8)，0.4 才够(#8→#3)
+#   fastembed(BGE)：同 seam 候选都"差不多相关"分差小(~0.07)，0.2 即可翻盘(#8→#1)
+# 0.4 对两者都工作(stub 够翻、fastembed 略快但合理：同 seam 内都相关时信任主导是对的)。
 _W_TRUST = float(os.environ.get("LOOM_W_TRUST", "0.4"))
 
 
@@ -57,7 +58,15 @@ def _patch_factstore_with_fastembed(store: FactStore) -> None:
     if not use_stub:
         try:
             from fastembed import TextEmbedding
-            model = TextEmbedding("BAAI/bge-small-en-v1.5")
+            _fe = TextEmbedding("BAAI/bge-small-en-v1.5")
+            # fastembed 的 API 是 .embed() 返回生成器(np 数组)，包装成统一的 .encode()
+            class _FastEmbed:
+                def encode(self, texts, normalize_embeddings=True):
+                    return list(_fe.embed(list(texts)))  # bge 输出已 L2 归一化
+                @property
+                def dim(self):
+                    return 384
+            model = _FastEmbed()
         except Exception:
             model = None
     if model is None:

@@ -107,6 +107,26 @@ claude mcp add --transport http loom https://loom.alhz.org/mcp
 > 边界：产物「能编译能启动」≠ 功能完备。OAuth 需填真实凭据；默认轻量词袋检索（速度优先，
 > 可切 fastembed 语义检索）。候选池覆盖 SaaS 后台/博客类想法（39 候选 / 10 接缝 / 2 域）。
 
+### 提升检索质量：开 fastembed 语义检索
+
+默认用词袋检索（StubEmbedder，零网络、零加载，装上即用），但**同义词/中文检索弱**。
+要更准的语义检索，设环境变量 `LOOM_EMBED_PROVIDER=fastembed`（首次下载 BGE 模型 ~130MB，之后离线）。
+
+实测差异（同义异词查询「找一个支持行内编辑的表格」）：
+
+| 检索器 | 同义异词查询命中 | 说明 |
+|---|---|---|
+| StubEmbedder（默认词袋） | #7 | 靠字面词重叠，不懂同义 |
+| fastembed（BGE 语义） | **#1** | 真懂语义，中文也行 |
+
+在 `.mcp.json` 里加 env 即可：
+```jsonc
+{ "mcpServers": { "loom": {
+  "command": "uvx", "args": ["loom-memory-mcp"],
+  "env": { "LOOM_EMBED_PROVIDER": "fastembed" }
+} } }
+```
+
 ### 方式三：本地全自动（开发/自备 key）
 
 见 [`INSTALL.md`](./INSTALL.md)。装好 Node/pnpm/Python/uv 后：
