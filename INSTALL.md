@@ -1,86 +1,54 @@
-# Loom 安装指南（给 AI 读：你可以照这个自己把 Loom 装好）
+# Loom 安装指南（给 AI 读）
 
-> 这份文件是给 AI 工具（claude code / cursor 等）读的。按下面步骤检查环境、安装缺失项、
-> 配置 LLM 渠道、注册 skill。每步都给了**检查命令**和**失败时的安装命令**。
-> 全程用绝对路径（Windows 下 bash cwd 不稳）。项目根记为 `$ROOT`。
+> 这份文件是给 AI coding agent（Claude Code / Cursor / opencode 等）读的。
+> 用户把这份文件的 URL 发给你，请你照下面步骤把 Loom 装好。全部步骤都很简单。
 
-## 0. 确认项目根
+Loom = 一个 MCP 工具：从用户自己的代码库检索-组装新项目，越用越强（AI 编程的肌肉记忆）。
+装 Loom = 装 uv（如果没有）+ 注册一个 MCP server。**不需要 clone 仓库、不需要 Python、不需要 key。**
 
-```bash
-ROOT=/d/windows/code/project/Loom   # 改成实际路径
-ls "$ROOT/loom_assemble.sh" "$ROOT/platform" "$ROOT/client"   # 三者都在 = 路径对
-```
+## 步骤
 
-## 1. 运行时依赖（检查 → 缺则装）
-
-| 工具 | 检查 | 缺则装 |
-|---|---|---|
-| Node ≥20 | `node -v` | 装 Node LTS |
-| pnpm | `pnpm -v` | `npm i -g pnpm` |
-| Python ≥3.12 | `python --version` | 装 Python |
-| uv | `uv --version` | `pip install uv` 或 `pipx install uv` |
-
-## 2. client 依赖（TS）
+### 1. 确认 uv 已安装
 
 ```bash
-cd "$ROOT/client" && pnpm install
-# 验证：node node_modules/typescript/bin/tsc --noEmit   → 应 exit 0
+uv --version
 ```
-注意：client 的 tsx 跑法是 `node node_modules/tsx/dist/cli.mjs <script>`（`pnpm exec tsx` 有 esbuild 预检坑）。
 
-## 3. platform 依赖（Python，含检索/ingest）
+没有就装（uv 会自己管理 Python，用户无需装 Python）：
+- macOS / Linux：`curl -LsSf https://astral.sh/uv/install.sh | sh`
+- Windows：`powershell -c "irm https://astral.sh/uv/install.ps1 | iex"`
 
+### 2. 注册 Loom MCP server
+
+Claude Code：
 ```bash
-cd "$ROOT/platform" && uv sync
-# 检索 embedding（本地，离线）：
-uv run python -c "import fastembed" || uv add fastembed
-# ingest（tree-sitter 解析）：
-uv run python -c "import tree_sitter_typescript" || uv add tree-sitter tree-sitter-typescript
-# 验证检索：uv run python eval_retrieval.py  → recall@1 应 ~100%
-```
-注意：platform 一律用 `uv run python`（全局 python 的 pydantic 版本冲突）。
-
-## 4. LLM 渠道（选择层要调一次 AI；client 物化零 LLM）
-
-Loom 只在"选择装哪些组件"这步调 AI。配一个可用渠道（二选一）：
-
-**deepseek（推荐，OpenAI 兼容）**：
-```bash
-export LOOM_LLM_PROVIDER=deepseek
-export LOOM_LLM_API_KEY=sk-xxxxx          # 用户的 deepseek key
-export LOOM_LLM_BASE_URL=https://api.deepseek.com   # 默认值，可省
-export LOOM_LLM_MODEL=deepseek-chat                 # 默认值，可省
-# 验证：curl -s -m 15 -X POST "$LOOM_LLM_BASE_URL/chat/completions" \
-#   -H "Authorization: Bearer $LOOM_LLM_API_KEY" -H "Content-Type: application/json" \
-#   -d '{"model":"deepseek-chat","messages":[{"role":"user","content":"hi"}],"max_tokens":5}'
-#   → 返回 JSON 含 choices = 通
+claude mcp add loom -- uvx loom-memory-mcp
 ```
 
-**anthropic 网关（若可用）**：设 `ANTHROPIC_BASE_URL` + `ANTHROPIC_API_KEY`，不设 `LOOM_LLM_PROVIDER`。
-（注：已知 code.ppchat.vip 网关可能不稳/无 embedding 通道，故 embedding 用本地 fastembed。）
-
-## 5. 注册 skill（让 claude code 能一句话触发）
-
-skill 已在 `$ROOT/.claude/skills/loom/SKILL.md`。若要全局可用，软链或拷到用户级：
-```bash
-# claude code 项目内自动发现 .claude/skills/；全局用拷到 ~/.claude/skills/loom/
-cp -r "$ROOT/.claude/skills/loom" ~/.claude/skills/   # 可选
+Cursor / 其他（手写 `.mcp.json`）：
+```jsonc
+{ "mcpServers": { "loom": { "command": "uvx", "args": ["loom-memory-mcp"] } } }
 ```
 
-## 6. 冒烟测试（确认整条链路通）
-
-```bash
-# 纯本地、不调 AI 的验证（确认 client+检索+ingest 都就绪）：
-cd "$ROOT/platform" && uv run python eval_retrieval.py && uv run python eval_writeown.py
-cd "$ROOT/client" && node node_modules/typescript/bin/tsc --noEmit
-
-# 端到端（需 LLM key，用现成想法）：
-LOOM_LLM_PROVIDER=deepseek LOOM_LLM_API_KEY=$KEY \
-  bash "$ROOT/loom_assemble.sh" "$ROOT/ideas/saas-admin-with-google-auth.json" "$ROOT/.work/smoke"
-# → 末尾打印 "✓ 完成。starter 在: ..." + converged=true
+opencode（`opencode.json`）：
+```jsonc
+{ "mcp": { "loom": { "type": "local", "command": ["uvx", "loom-memory-mcp"], "enabled": true } } }
 ```
 
-## 装好后怎么用
+### 3. 验证
 
-见 `.claude/skills/loom/SKILL.md`。一句话：用户描述想法 → AI 写成 ideas/*.json →
-`loom_assemble.sh` 一条命令出 starter。
+重启 agent 或重载 MCP，确认这些工具可见：
+`loom_propose` / `loom_plan_from_choices` / `loom_get_files` / `loom_ingest`
+
+首次调用会自动在 `~/.loom/` 初始化用户的个人组件库（内置 39 个种子候选）。
+
+## 装好后怎么用（告诉用户）
+
+直接说想法，例如「用 loom 搭一个带 Google 登录、Project 增删改查、表格和表单的后台」。流程：
+1. 你调 `loom_propose` → 每个能力 seam 返回 2-3 个候选 + 架构取舍
+2. 你帮用户挑（高置信直接选，不确定才问用户）→ `loom_plan_from_choices`
+3. `loom_get_files` → 返回完整 create-t3-app 项目文件
+4. 你写盘 → `pnpm install` → 填 `.env` → `pnpm dev`
+5. 用户写完新代码后，你可以调 `loom_ingest` 收录进库，下次复用
+
+诚实边界：产物「能编译能启动」≠ 功能完备（OAuth 占位需用户填真 key）。
