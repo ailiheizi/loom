@@ -103,6 +103,12 @@ class MemoryBackend:
         self.store = FactStore(store_dir, embed_model=embed_model)
         # 用本地 fastembed/stub 替换 sentence-transformers(避免 HuggingFace 下载)
         _patch_factstore_with_fastembed(self.store)
+        # 信任评分：用 memory-engine 的 Beta-Bernoulli MemoryWorth(上游官方实现)
+        try:
+            from loom_vendor.memory_worth import MemoryWorth
+        except ImportError:
+            from memory_engine.memory_worth import MemoryWorth
+        self.worth = MemoryWorth(self.store)
 
     def _make_text(self, summary: str, seam_id: str, ref: str, exports: list[str] | None = None) -> str:
         """构造可检索的 fact text（summary + seam + ref + 导出签名）。"""
@@ -153,12 +159,16 @@ class MemoryBackend:
             meta = r.get("metadata", {})
             if meta.get("seam_id") != seam_id:
                 continue
+            # 信任分用 Beta-Bernoulli worth(s/f 计数)，融入排序
+            worth = self.worth.get_worth(r["id"])
+            sim = r.get("score", 0)  # fact_store 的语义相似度
+            final = sim + 0.2 * worth  # 信任加权(W_TRUST=0.2)
             hits.append({
                 "ref": meta.get("ref", "?"),
                 "summary": meta.get("summary", ""),
-                "score": r.get("final", r.get("score", 0)),
-                "trust": r.get("eff_trust", r.get("trust", 0.5)),
-                "health": r.get("trust", 0.5),  # 映射 trust → health
+                "score": final,
+                "trust": round(worth, 4),
+                "health": round(worth, 4),
                 "deps": meta.get("deps", []),
                 "tradeoffs": meta.get("tradeoffs", ""),
                 "target": meta.get("target", ""),
@@ -168,8 +178,9 @@ class MemoryBackend:
                 "requires_prisma_model": meta.get("requires_prisma_model"),
                 "fact_id": r.get("id"),
             })
-            if len(hits) >= top_k:
-                break
+        # 用融合了 worth 的 final 重排
+        hits.sort(key=lambda h: h["score"], reverse=True)
+        hits = hits[:top_k]
         return hits
 
     def get_candidate(self, ref: str) -> Optional[dict]:
@@ -180,12 +191,27 @@ class MemoryBackend:
                 return meta
         return None
 
-    def reinforce(self, ref: str) -> bool:
-        """候选被复用 → 信任升。按 ref 找到 fact_id 后调 reinforce。"""
+    def reinforce(self, ref: str, success: bool = True) -> bool:
+        """候选被复用后记录结果 → Beta-Bernoulli 更新信任(MemoryWorth)。
+
+        success=True: 被 pick 且物化收敛(正反馈) → worth 升
+        success=False: 被 pick 但物化失败(负反馈) → worth 降
+        """
         for f in self.store.facts:
             if f.get("metadata", {}).get("ref") == ref:
-                return self.store.reinforce(f["id"])
+                if success:
+                    self.worth.record_success(f["id"])
+                else:
+                    self.worth.record_failure(f["id"])
+                return True
         return False
+
+    def get_worth(self, ref: str) -> float:
+        """某候选的 Beta-Bernoulli 信任分(worth)。"""
+        for f in self.store.facts:
+            if f.get("metadata", {}).get("ref") == ref:
+                return self.worth.get_worth(f["id"])
+        return 0.5
 
     def list_candidates(self, seam_id: str | None = None) -> list[dict]:
         """列出所有候选（或某 seam 的）。"""

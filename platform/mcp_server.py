@@ -324,10 +324,39 @@ def loom_get_files(plan_json: str) -> str:
     if os.environ.get("LOOM_BACKEND", "memory") == "memory":
         from get_files import get_files_via_backend
         from memory_backend import get_backend
-        result = get_files_via_backend(plan, get_backend())
+        backend = get_backend()
+        result = get_files_via_backend(plan, backend)
+        # 弱正信号：被 pick 进项目的候选记一次"被采用"。强信号(tsc 通过)由
+        # agent 之后调 loom_record_outcome 补。这样飞轮在生产路径真的转，不靠手灌。
+        for d in plan.seams:
+            if d.action in (c.SeamAction.PICK, c.SeamAction.ADAPT) and d.ref:
+                try:
+                    backend.reinforce(d.ref, success=True)
+                except Exception:
+                    pass
     else:
         result = get_files(plan)
     return json.dumps(result, ensure_ascii=False)
+
+
+@mcp.tool()
+def loom_record_outcome(refs: list[str], success: bool, note: str = "") -> str:
+    """回报候选的真实使用结果，驱动信任飞轮（Beta-Bernoulli）。
+
+    在你(宿主 agent)把项目物化到本地、跑完 pnpm install + tsc/build 验证后调用：
+    - success=true：这些候选组装的项目验证通过 → 它们信任分上升，下次更靠前
+    - success=false：项目没通过(类型错/跑不起来) → 信任分下降，下次排后
+
+    这是飞轮的真实成功信号入口——不是系统瞎标，是你根据真实验证结果回报。
+    入参 refs：本次用到的候选 ref 列表（来自 plan 的 seams[].ref）。
+    """
+    from memory_backend import get_backend
+    backend = get_backend()
+    updated = []
+    for ref in refs:
+        if backend.reinforce(ref, success=success):
+            updated.append({"ref": ref, "worth": round(backend.get_worth(ref), 4)})
+    return json.dumps({"success": success, "updated": updated, "note": note}, ensure_ascii=False)
 
 
 if __name__ == "__main__":
