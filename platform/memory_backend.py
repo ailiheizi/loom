@@ -59,16 +59,21 @@ def _patch_factstore_with_fastembed(store: FactStore) -> None:
     if not use_stub:
         try:
             from fastembed import TextEmbedding
-            _fe = TextEmbedding("BAAI/bge-small-en-v1.5")
+            # 模型选择：LOOM_EMBED_MODEL 可覆盖。默认 multilingual-MiniLM(中英混用最佳)。
+            # bge-small-en 只适合纯英文；multilingual 跨语言判别力 0.6+(bge-en 只 0.06)。
+            model_name = os.environ.get(
+                "LOOM_EMBED_MODEL",
+                "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+            )
+            _fe = TextEmbedding(model_name)
             # fastembed API: .embed() 返回 numpy ndarray 生成器，包装成统一 .encode()
-            # ⚠️ bge-small-en 只真正支持英文。纯中文有基本判别力(分差挤压)，
-            # 中英跨语言几乎无效(diff~0.06)。中文场景等支持 bge-m3 或换 stub。
+            _dim = len(list(_fe.embed(["dim_probe"]))[0])
             class _FastEmbed:
                 def encode(self, texts, normalize_embeddings=True):
-                    return list(_fe.embed(list(texts)))  # bge 输出已归一化
+                    return list(_fe.embed(list(texts)))
                 @property
                 def dim(self):
-                    return 384
+                    return _dim
             model = _FastEmbed()
         except Exception:
             model = None
@@ -87,8 +92,7 @@ def _patch_factstore_with_fastembed(store: FactStore) -> None:
     def _ensure_model(self):
         if self._model is None:
             self._model = model
-            # fastembed 的 bge-small 维度 384；stub 是 256
-            self._dim = 384 if hasattr(model, 'encode') and not hasattr(model, 'dim') else getattr(model, 'dim', 384)
+            self._dim = model.dim
     store._ensure_model = lambda: _ensure_model(store)
 
     def _rebuild_index(self):
