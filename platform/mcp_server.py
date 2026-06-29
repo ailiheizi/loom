@@ -326,14 +326,18 @@ def loom_get_files(plan_json: str) -> str:
         from memory_backend import get_backend
         backend = get_backend()
         result = get_files_via_backend(plan, backend)
-        # 弱正信号：被 pick 进项目的候选记一次"被采用"。强信号(tsc 通过)由
-        # agent 之后调 loom_record_outcome 补。这样飞轮在生产路径真的转，不靠手灌。
-        for d in plan.seams:
-            if d.action in (c.SeamAction.PICK, c.SeamAction.ADAPT) and d.ref:
-                try:
-                    backend.reinforce(d.ref, success=True)
-                except Exception:
-                    pass
+        # 注意：被 pick ≠ 好用，不自动 reinforce(success=True)——那会污染信任分。
+        # 飞轮只由真实验证结果驱动(agent 跑完 tsc/build 后调 loom_record_outcome)。
+        # 在返回里提醒 agent 验证后回报，保障强信号闭环不空转。
+        picked_refs = [d.ref for d in plan.seams
+                       if d.action in (c.SeamAction.PICK, c.SeamAction.ADAPT) and d.ref]
+        if picked_refs:
+            result["_next_step"] = (
+                f"写盘后跑 pnpm install + tsc/build 验证。验证通过调 "
+                f"loom_record_outcome(refs={picked_refs}, success=true)；"
+                f"失败调 loom_record_outcome(refs={picked_refs}, success=false)。"
+                f"这驱动信任飞轮——好候选下次排更前。"
+            )
     else:
         result = get_files(plan)
     return json.dumps(result, ensure_ascii=False)

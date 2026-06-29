@@ -37,12 +37,13 @@ ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_STORE_DIR = str(ROOT / ".work" / "loom-memory")
 
 # 检索排序里信任(worth)的权重。越大→飞轮越能让常用候选翻盘，但也越可能压过语义。
-# 可用 LOOM_W_TRUST 调（默认 0.4）。
-# 取 0.4 依据：eval_wtrust.py 扫描。最优值依赖 embedder——
-#   StubEmbedder(词袋)：同 seam 候选语义分差大(~0.22)，0.2 翻不动(#8→#8)，0.4 才够(#8→#3)
-#   fastembed(BGE)：同 seam 候选都"差不多相关"分差小(~0.07)，0.2 即可翻盘(#8→#1)
-# 0.4 对两者都工作(stub 够翻、fastembed 略快但合理：同 seam 内都相关时信任主导是对的)。
-_W_TRUST = float(os.environ.get("LOOM_W_TRUST", "0.4"))
+# 可用 LOOM_W_TRUST 显式覆盖。未设时按 embedder 自适应：
+#   stub(词袋)：同 seam 候选分差大(~0.22)，需 0.4 才翻盘(#8→#3)
+#   fastembed(BGE)：同 seam 候选分差小(~0.07)，0.2 即翻盘，0.4 过度(一次成功可能霸榜)
+_W_TRUST_EXPLICIT = os.environ.get("LOOM_W_TRUST")
+_W_TRUST = float(_W_TRUST_EXPLICIT) if _W_TRUST_EXPLICIT else (
+    0.2 if os.environ.get("LOOM_EMBED_PROVIDER", "").lower() == "fastembed" else 0.4
+)
 
 
 def _patch_factstore_with_fastembed(store: FactStore) -> None:
@@ -59,10 +60,12 @@ def _patch_factstore_with_fastembed(store: FactStore) -> None:
         try:
             from fastembed import TextEmbedding
             _fe = TextEmbedding("BAAI/bge-small-en-v1.5")
-            # fastembed 的 API 是 .embed() 返回生成器(np 数组)，包装成统一的 .encode()
+            # fastembed API: .embed() 返回 numpy ndarray 生成器，包装成统一 .encode()
+            # ⚠️ bge-small-en 只真正支持英文。纯中文有基本判别力(分差挤压)，
+            # 中英跨语言几乎无效(diff~0.06)。中文场景等支持 bge-m3 或换 stub。
             class _FastEmbed:
                 def encode(self, texts, normalize_embeddings=True):
-                    return list(_fe.embed(list(texts)))  # bge 输出已 L2 归一化
+                    return list(_fe.embed(list(texts)))  # bge 输出已归一化
                 @property
                 def dim(self):
                     return 384

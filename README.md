@@ -109,7 +109,7 @@ claude mcp add --transport http loom https://loom.alhz.org/mcp
 
 ### 提升检索质量：开 fastembed 语义检索
 
-默认用词袋检索（StubEmbedder，零网络、零加载，装上即用），但**同义词/中文检索弱**。
+默认用词袋检索（StubEmbedder，零网络、零加载，装上即用），但**同义词检索弱**。
 要更准的语义检索，设环境变量 `LOOM_EMBED_PROVIDER=fastembed`（首次下载 BGE 模型 ~130MB，之后离线）。
 
 实测差异（同义异词查询「找一个支持行内编辑的表格」）：
@@ -117,7 +117,10 @@ claude mcp add --transport http loom https://loom.alhz.org/mcp
 | 检索器 | 同义异词查询命中 | 说明 |
 |---|---|---|
 | StubEmbedder（默认词袋） | #7 | 靠字面词重叠，不懂同义 |
-| fastembed（BGE 语义） | **#1** | 真懂语义，中文也行 |
+| fastembed（BGE 语义） | **#1** | 真懂语义 |
+
+> ⚠️ 语言限制：默认模型 bge-small-en 对**英文优秀**，纯中文有基本判别力但分差挤压，
+> **中英混用/跨语言几乎无效**。中文为主的用户建议保持 stub 或等后续支持 bge-m3。
 
 在 `.mcp.json` 里加 env 即可：
 ```jsonc
