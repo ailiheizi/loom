@@ -38,7 +38,7 @@ opencode（`opencode.json`）：
 ### 3. 验证
 
 重启 agent 或重载 MCP，确认这些工具可见：
-`loom_propose` / `loom_plan_from_choices` / `loom_get_files` / `loom_ingest`
+`loom_propose` / `loom_plan_from_choices` / `loom_get_files` / `loom_ingest` / `loom_record_outcome`
 
 首次调用会自动在 `~/.loom/` 初始化用户的个人组件库（内置 39 个种子候选）。
 
@@ -49,6 +49,7 @@ opencode（`opencode.json`）：
 2. 你帮用户挑（高置信直接选，不确定才问用户）→ `loom_plan_from_choices`
 3. `loom_get_files` → 返回完整 create-t3-app 项目文件
 4. 你写盘 → `pnpm install` → 填 `.env` → `pnpm dev`
-5. 用户写完新代码后，你可以调 `loom_ingest` 收录进库，下次复用
+5. 跑完 `tsc`/`build` 验证后调 `loom_record_outcome(refs, success)` 回报结果 → 信任飞轮：好候选浮顶
+6. 用户写完新代码后，你可以调 `loom_ingest` 收录进库，下次复用
 
 诚实边界：产物「能编译能启动」≠ 功能完备（OAuth 占位需用户填真 key）。

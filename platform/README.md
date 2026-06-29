@@ -10,10 +10,10 @@
 
 ```jsonc
 // .mcp.json
-{ "mcpServers": { "loom": { "command": "uvx", "args": ["loom-mcp"] } } }
+{ "mcpServers": { "loom": { "command": "uvx", "args": ["loom-memory-mcp"] } } }
 ```
 
-或：`claude mcp add loom -- uvx loom-mcp`
+或：`claude mcp add loom -- uvx loom-memory-mcp`
 
 首次运行自动在 `~/.loom/` 初始化个人组件库（内置种子候选）。
 
@@ -23,6 +23,7 @@
 - `loom_plan_from_choices(idea_json, choices_json)` — 选择 → 装配计划
 - `loom_get_files(plan_json)` — 物化成完整 create-t3-app 项目文件
 - `loom_ingest(paths, seam_hint?, description?)` — 收录你写的代码进组件库
+- `loom_record_outcome(refs, success)` — 跑完 tsc/build 后回报结果，驱动信任飞轮
 
 ## 工作流
 

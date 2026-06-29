@@ -49,13 +49,30 @@ def test_infer_seam():
 
 
 def test_beta_trust():
-    print("== P1: Beta-Bernoulli 信任 ==")
-    # 纯算法验证（不依赖文件）
-    def trust(s, f):
-        return s / (s + f + 2)
-    check("5 次 success 趋近但不到 1", abs(trust(5, 0) - 0.7143) < 0.01)
-    check("成功多→信任高", trust(100, 0) > trust(3, 0))
-    check("failure 拉低信任", trust(5, 1) < trust(5, 0))
+    print("== P1: Beta-Bernoulli 信任(MemoryWorth 上游公式) ==")
+    # 测生产实际用的公式：worth=(s+1)/(s+f+2)(Laplace 平滑)
+    try:
+        from loom_vendor.memory_worth import MemoryWorth
+    except ImportError:
+        from memory_engine.memory_worth import MemoryWorth
+
+    class _FakeStore:
+        def __init__(self):
+            self.facts = [{"id": 1, "success": 0, "failure": 0}]
+        def _save(self):
+            pass
+
+    st = _FakeStore()
+    w = MemoryWorth(st)
+    check("初始 worth=0.5", abs(w.get_worth(1) - 0.5) < 1e-6)
+    for _ in range(5):
+        w.record_success(1)
+    check("5 次 success → 6/7≈0.857", abs(w.get_worth(1) - 6 / 7) < 0.01,
+          f"got {w.get_worth(1):.4f}")
+    w.record_failure(1)
+    check("failure 拉低信任", w.get_worth(1) < 6 / 7)
+    # 置信度随观察次数升
+    check("观察越多置信越高", w.get_confidence(1) > 0)
 
 
 def test_backend_flywheel():
@@ -83,9 +100,17 @@ def test_backend_flywheel():
         check("ingest 后 count+1", mb.count == before + 1)
         hits2 = mb.retrieve("ui.data_table", "custom foo table", top_k=5)
         check("ingest 的组件被召回", any(h["ref"] == "my-foo-table" for h in hits2))
-        # reinforce 信任升
-        ok = mb.reinforce("my-foo-table")
-        check("reinforce 成功", ok)
+        # reinforce 信任升（Beta worth）
+        w_before = mb.get_worth("my-foo-table")
+        ok = mb.reinforce("my-foo-table", success=True)
+        check("reinforce(success) 成功", ok)
+        w_after = mb.get_worth("my-foo-table")
+        check("success → worth 升", w_after > w_before, f"{w_before:.3f}->{w_after:.3f}")
+        # 失败路径：worth 必须能降（之前从没测过）
+        mb.reinforce("my-foo-table", success=False)
+        mb.reinforce("my-foo-table", success=False)
+        w_fail = mb.get_worth("my-foo-table")
+        check("failure → worth 降", w_fail < w_after, f"{w_after:.3f}->{w_fail:.3f}")
     finally:
         os.environ.pop("LOOM_STORE_DIR", None)
         shutil.rmtree(tmp, ignore_errors=True)
