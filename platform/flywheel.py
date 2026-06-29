@@ -35,9 +35,10 @@ USER_INITIAL_HEALTH = 0.6    # 用户上传初始信任更高
 REUSE_INCREMENT = 0.15       # 每次被复用的健康度增量
 PROMOTE_THRESHOLD = 0.6      # 跨此阈值视为"转优先 pick"
 
-# 信任层参数
-TRUST_INITIAL = 0.5          # 新候选初始信任分
-TRUST_REUSE_BOOST = 0.1      # 每次复用 +0.1
+# 信任层参数（Beta-Bernoulli 模型，借鉴 memory-engine 规划）
+# trust_score = success / (success + failure + 2)  ← Beta 后验均值
+# 比加性(+0.15/-0.03)更有概率收敛性：能区分"用了 3 次"和"用了 100 次"的置信度
+TRUST_INITIAL = 0.5          # 新候选初始(等价于 s=0,f=0 → 0/(0+0+2)=0 → 用 0.5 兜底)
 TRUST_MAX = 1.0
 TRUST_MIN = 0.1
 TRUST_DECAY_AFTER_DAYS = 30  # 超过多少天没用开始衰减
@@ -68,26 +69,40 @@ def harvest(
     return meta_path
 
 
-def record_reuse(seam_id: str, ref: str) -> dict:
-    """某候选被 pick → 健康度升、trust_score 升、reuse_count+1、last_used 更新。"""
+def record_reuse(seam_id: str, ref: str, success: bool = True) -> dict:
+    """候选被 pick → 记录结果(success/failure)，用 Beta-Bernoulli 更新信任分。
+
+    success=True: 候选被 pick 且产物收敛(正反馈)
+    success=False: 候选被 pick 但产物不收敛(负反馈)
+    trust = s / (s + f + 2)  ← Beta(s+1, f+1) 的后验均值
+    """
     meta_path = CANDIDATES / seam_id / ref / "meta.json"
     if not meta_path.exists():
         raise FileNotFoundError(f"候选不存在: {seam_id}/{ref}")
     meta = json.loads(meta_path.read_text(encoding="utf-8"))
     ml = meta["registry_item"]["meta_loom"]
 
-    # 健康度
+    # 健康度(保留旧逻辑,兼容)
     old_health = float(meta["l0"].get("health", 0.0))
-    new_health = min(1.0, old_health + REUSE_INCREMENT)
+    new_health = min(1.0, old_health + REUSE_INCREMENT) if success else old_health
     count = int(meta["l0"].get("reuse_count", 0)) + 1
     meta["l0"]["health"] = new_health
     meta["l0"]["reuse_count"] = count
     ml["health"] = new_health
 
-    # 信任分
-    old_trust = float(ml.get("trust_score", TRUST_INITIAL))
-    new_trust = min(TRUST_MAX, old_trust + TRUST_REUSE_BOOST)
-    ml["trust_score"] = round(new_trust, 3)
+    # Beta-Bernoulli 信任分
+    s = int(ml.get("trust_success", 0))
+    f = int(ml.get("trust_failure", 0))
+    if success:
+        s += 1
+    else:
+        f += 1
+    ml["trust_success"] = s
+    ml["trust_failure"] = f
+    new_trust = s / (s + f + 2)  # Beta 后验均值(+2 是 prior: Beta(1,1))
+    new_trust = max(TRUST_MIN, min(TRUST_MAX, new_trust))
+    old_trust = ml.get("trust_score", TRUST_INITIAL)
+    ml["trust_score"] = round(new_trust, 4)
 
     # last_used
     now = datetime.now(timezone.utc).isoformat()
@@ -96,14 +111,14 @@ def record_reuse(seam_id: str, ref: str) -> dict:
     meta_path.write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
     return {
         "ref": ref,
-        "health_before": round(old_health, 3),
+        "success": success,
+        "trust_before": round(float(old_trust), 4),
+        "trust_after": round(new_trust, 4),
+        "beta": f"s={s} f={f} → {new_trust:.4f}",
         "health_after": round(new_health, 3),
-        "trust_before": round(old_trust, 3),
-        "trust_after": round(new_trust, 3),
         "reuse_count": count,
         "last_used": now,
         "promoted": old_health < PROMOTE_THRESHOLD <= new_health,
-        "is_pick_grade": new_health >= PROMOTE_THRESHOLD,
     }
 
 
