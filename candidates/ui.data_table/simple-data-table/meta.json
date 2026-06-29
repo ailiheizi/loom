@@ -25,8 +25,10 @@
       "license": "MIT",
       "ext_pkgs": [],
       "tradeoffs": "零外部依赖，原生 table。功能基础（无排序/分页/筛选）。适合快速展示小数据量，不适合大数据或需交互的场景。",
-      "trust_score": 0.6,
-      "last_used": "2026-06-28T16:40:32.744023+00:00"
+      "trust_score": 0.625,
+      "last_used": "2026-06-29T08:04:20.220598+00:00",
+      "trust_success": 5,
+      "trust_failure": 1
     }
   },
   "l0": {
@@ -38,7 +40,7 @@
     "health": 1.0,
     "provenance": "platform",
     "content_hash": null,
-    "reuse_count": 1
+    "reuse_count": 7
   },
   "l1": {
     "ref": "simple-data-table",

@@ -34,3 +34,8 @@ secrets.*
 .DS_Store
 Thumbs.db
 *.log
+
+# PyInstaller 打包产物
+platform/build/
+platform/dist/
+platform/*.spec

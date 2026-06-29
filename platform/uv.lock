@@ -567,8 +567,8 @@ wheels = [
 ]
 
 [[package]]
-name = "loom-platform"
-version = "0.1.0"
+name = "loom-mcp"
+version = "0.2.1"
 source = { editable = "." }
 dependencies = [
     { name = "anthropic" },

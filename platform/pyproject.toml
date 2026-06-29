@@ -1,7 +1,7 @@
 [project]
-name = "loom-platform"
-version = "0.1.0"
-description = "Loom 平台侧：选择引擎 / 披露式展开 / 契约"
+name = "loom-mcp"
+version = "0.2.1"
+description = "Loom MCP — AI 编程的肌肉记忆,从你自己的代码库检索-组装新项目"
 requires-python = ">=3.12"
 dependencies = [
     "pydantic>=2.0",
@@ -13,6 +13,9 @@ dependencies = [
     "openai>=1.0",
     "tokenizers==0.22.2",
 ]
+
+[project.scripts]
+loom-mcp = "loom_entry:main"
 
 [tool.uv]
 dev-dependencies = [
