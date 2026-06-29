@@ -164,6 +164,24 @@ class MemoryBackend:
         fact_id = self.store.add(text, metadata=metadata)
         return {"fact_id": fact_id, "ref": ref, "seam_id": seam_id, "status": "ingested"}
 
+    def ingest_batch(self, items: list[dict]) -> int:
+        """批量收录候选，只在最后建一次索引（避免逐条 _rebuild_index 的 O(n²)）。
+
+        用于"第一次把现有项目的一批组件导入"场景。fastembed 下尤其关键：逐条
+        ingest N 条 = O(n²) 次 encode，批量则 O(n)。每个 item 同 ingest 的参数。
+        """
+        real_rebuild = self.store._rebuild_index
+        self.store._rebuild_index = lambda: None
+        n = 0
+        try:
+            for it in items:
+                self.ingest(**it)
+                n += 1
+        finally:
+            self.store._rebuild_index = real_rebuild
+        self.store._rebuild_index()  # 一次性建索引
+        return n
+
     def retrieve(self, seam_id: str, query: str, top_k: int = 3) -> list[dict]:
         """检索某 seam 下最匹配的候选。返回 [{ref, summary, score, trust, metadata...}]。
 
@@ -269,29 +287,20 @@ class MemoryBackend:
             return 0
         seeds = json.loads(seed_path.read_text(encoding="utf-8"))
 
-        # 批量优化：禁用逐次 _rebuild_index(否则 39 次全量重建 = O(n²)，~43s)，
-        # 加完所有候选后只重建一次。
-        real_rebuild = self.store._rebuild_index
-        self.store._rebuild_index = lambda: None
-        n = 0
-        try:
-            for s in seeds:
-                self.ingest(
-                    src_content=s["file_content"],
-                    seam_id=s["seam_id"],
-                    ref=s["ref"],
-                    summary=s["summary"],
-                    target=s["target"],
-                    deps=s.get("deps"),
-                    env_vars=s.get("env_vars"),
-                    tradeoffs=s.get("tradeoffs", ""),
-                    barrel_snippet=s.get("barrel_snippet"),
-                    requires_prisma_model=s.get("requires_prisma_model"),
-                )
-                n += 1
-        finally:
-            self.store._rebuild_index = real_rebuild
-        self.store._rebuild_index()  # 一次性建索引
+        # 批量导入(只建一次索引，避免 39 次全量重建的 O(n²))
+        items = [{
+            "src_content": s["file_content"],
+            "seam_id": s["seam_id"],
+            "ref": s["ref"],
+            "summary": s["summary"],
+            "target": s["target"],
+            "deps": s.get("deps"),
+            "env_vars": s.get("env_vars"),
+            "tradeoffs": s.get("tradeoffs", ""),
+            "barrel_snippet": s.get("barrel_snippet"),
+            "requires_prisma_model": s.get("requires_prisma_model"),
+        } for s in seeds]
+        n = self.ingest_batch(items)
         logger.info(f"bootstrap: 从 seed 导入 {n} 个候选到 {self.store.store_dir}")
         return n
 
