@@ -119,8 +119,8 @@ claude mcp add --transport http loom https://loom.alhz.org/mcp
 | StubEmbedder（默认词袋） | #7 | 靠字面词重叠，不懂同义 |
 | fastembed（BGE 语义） | **#1** | 真懂语义 |
 
-> ⚠️ 语言限制：默认模型 bge-small-en 对**英文优秀**，纯中文有基本判别力但分差挤压，
-> **中英混用/跨语言几乎无效**。中文为主的用户建议保持 stub 或等后续支持 bge-m3。
+> ⚠️ 默认模型 multilingual-MiniLM 支持中英跨语言(判别力 0.6+)。
+> 纯英文场景可设 `LOOM_EMBED_MODEL=BAAI/bge-small-en-v1.5` 获得更高英文精度。
 
 在 `.mcp.json` 里加 env 即可：
 ```jsonc
