@@ -142,6 +142,47 @@ def propose(idea_path: Path) -> c.GradientProposal:
     return proposal
 
 
+def propose_via_backend(idea: dict, backend) -> c.GradientProposal:
+    """用 memory_backend(~/.loom FactStore)做候选梯度提案。
+
+    与 propose() 同契约(GradientProposal),但检索源是 memory-engine 而非仓库 candidates。
+    backend: memory_backend.MemoryBackend 实例。
+    """
+    seam_signatures = _load_seam_signatures()
+    seams: list[c.SeamProposal] = []
+    for capability in idea.get("capability_intents", []):
+        seam_id = capability["seam_id"]
+        intent = capability["intent"]
+        query_text = f"{seam_signatures.get(seam_id, '')} | {intent}"
+        hits = backend.retrieve(seam_id, query_text, top_k=3)
+
+        candidates: list[c.CandidateProposal] = []
+        for index, h in enumerate(hits):
+            candidates.append(
+                c.CandidateProposal(
+                    ref=h["ref"],
+                    summary=h["summary"],
+                    deps=h.get("deps", []),
+                    health=h.get("health", 0.5),
+                    provenance=c.Provenance.PLATFORM,
+                    score=h.get("score", 0.0),
+                    tradeoffs=h.get("tradeoffs", ""),
+                    recommended=index == 0,
+                )
+            )
+        seams.append(
+            c.SeamProposal(
+                seam_id=seam_id, intent=intent,
+                candidates=candidates, needs_generate=not candidates,
+            )
+        )
+    return c.GradientProposal(
+        idea_id=idea["idea_id"],
+        core_ref=idea.get("core_ref", "create-t3-app@7.39.x"),
+        seams=seams,
+    )
+
+
 def main() -> None:
     if len(sys.argv) != 2:
         print("用法: uv run python propose.py <idea.json>")

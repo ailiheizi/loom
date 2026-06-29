@@ -280,3 +280,124 @@ def get_files(plan: c.AssemblyPlan) -> dict:
         "prisma_models": prisma_models,
         "notes": notes,
     }
+
+
+def get_files_via_backend(plan: c.AssemblyPlan, backend) -> dict:
+    """同 get_files，但候选数据从 memory_backend(~/.loom)取，而非仓库 candidates/。
+
+    backend.get_candidate(ref) 返回 metadata：
+      {ref, seam_id, target, file_content, deps, env_vars, tradeoffs,
+       barrel_snippet, requires_prisma_model}
+    """
+    core = json.loads((ROOT / "core" / "loom.core.json").read_text(encoding="utf-8"))
+    seam_specs = {s["seam_id"]: s for s in core["seams"]}
+
+    files = _read_base_files()
+    # 修正 pnpm-workspace.yaml 占位（同 get_files）
+    if "pnpm-workspace.yaml" in files and "set this to true or false" in files["pnpm-workspace.yaml"]:
+        files.pop("pnpm-workspace.yaml", None)
+    if ".npmrc" not in files:
+        files[".npmrc"] = "enable-pre-post-scripts=true\n"
+
+    deps: list[dict] = []
+    env_vars: list[str] = []
+    notes: list[str] = []
+    prisma_models: list[str] = []
+    selected: set[str] = set()
+    crud_ref = None
+
+    for d in plan.seams:
+        if d.action == c.SeamAction.SKIP:
+            continue
+        if d.action == c.SeamAction.GENERATE:
+            notes.append(f"seam {d.seam_id}: generate（需宿主 agent 自写 {d.generated_file or '?'}）")
+            continue
+        if not d.ref:
+            continue
+        cand = backend.get_candidate(d.ref)
+        if cand is None:
+            notes.append(f"seam {d.seam_id}: 候选 {d.ref} 未找到")
+            continue
+        selected.add(d.seam_id)
+        if d.seam_id == "data.crud_resource":
+            crud_ref = d.ref
+
+        # 落候选文件
+        target = cand.get("target", "")
+        if target and cand.get("file_content"):
+            files[target] = cand["file_content"]
+
+        # 依赖 / env
+        for dep in cand.get("deps", []):
+            at = dep.rfind("@")
+            if at > 0:
+                deps.append({"name": dep[:at], "version": dep[at + 1:]})
+            else:
+                deps.append({"name": dep, "version": "latest"})
+        for ev in cand.get("env_vars", []):
+            if ev not in env_vars:
+                env_vars.append(ev)
+
+        # prisma model
+        pm = cand.get("requires_prisma_model")
+        if isinstance(pm, str) and pm.strip() and pm.strip() not in prisma_models:
+            prisma_models.append(pm.strip())
+
+        # barrel append
+        barrel = cand.get("barrel_snippet") or {}
+        spec = seam_specs.get(d.seam_id, {})
+        bfile = spec.get("barrel", {}).get("file")
+        imp, reg = barrel.get("import"), barrel.get("register")
+        anchor_imp = spec.get("barrel", {}).get("anchor_import")
+        anchor_reg = spec.get("barrel", {}).get("anchor_register")
+        if bfile and bfile in files:
+            if imp and anchor_imp:
+                files[bfile] = _insert_before_anchor(files[bfile], anchor_imp, imp)
+            if reg and anchor_reg:
+                files[bfile] = _insert_before_anchor(files[bfile], anchor_reg, reg)
+
+    # prisma model 注入
+    schema_path = "prisma/schema.prisma"
+    if prisma_models and schema_path in files:
+        for m in prisma_models:
+            if f"model {m} " not in files[schema_path]:
+                files[schema_path] = _insert_before_anchor(files[schema_path], PRISMA_ANCHOR, _prisma_model_body(m))
+
+    # env 注入
+    env_js = "src/env.js"
+    if env_vars and env_js in files:
+        for name in env_vars:
+            if re.search(rf"\b{re.escape(name)}\b", files[env_js]):
+                continue
+            files[env_js] = _insert_before_anchor(files[env_js], ENV_SERVER_ANCHOR, f"{name}: z.string(),")
+            files[env_js] = _insert_before_anchor(files[env_js], ENV_RUNTIME_ANCHOR, f"{name}: process.env.{name},")
+    if env_vars:
+        env_content = files.get(".env", "")
+        if "# injected by loom" not in env_content:
+            env_content += "\n\n# injected by loom"
+        for name in env_vars:
+            if f"{name}=" not in env_content:
+                env_content += f'\n{name}="loom-dev-placeholder"'
+        files[".env"] = env_content
+
+    # 去重 deps
+    seen = set(); uniq_deps = []
+    for dep in deps:
+        if dep["name"] not in seen:
+            seen.add(dep["name"]); uniq_deps.append(dep)
+
+    # 页面装配
+    page = _build_dashboard_page(selected, crud_ref)
+    if page:
+        files["src/app/dashboard/page.tsx"] = page
+        notes.append("已生成 src/app/dashboard/page.tsx（访问 /dashboard 可用）")
+
+    return {
+        "idea_id": plan.idea_id,
+        "core_ref": plan.core_ref,
+        "files": [{"path": p, "content": files[p]} for p in sorted(files)],
+        "deps": uniq_deps,
+        "env_vars": env_vars,
+        "prisma_models": prisma_models,
+        "notes": notes,
+    }

@@ -199,3 +199,50 @@ class MemoryBackend:
     @property
     def count(self) -> int:
         return len(self.store.facts)
+
+    def bootstrap_from_seed(self, seed_path: Optional[Path] = None) -> int:
+        """首次运行：若库为空，从 seed_data.json 导入内置候选。返回导入数。
+
+        seed_data.json 打进包（platform/loom_seed/），首次跑 loom-mcp 时把 39 个
+        基础候选迁进用户的 ~/.loom FactStore。之后用户 ingest 的新组件也存这。
+        """
+        if self.count > 0:
+            return 0  # 已有数据，不重复 bootstrap
+        if seed_path is None:
+            seed_path = Path(__file__).resolve().parent / "loom_seed" / "seed_data.json"
+        if not seed_path.exists():
+            logger.warning(f"seed 数据不存在: {seed_path}")
+            return 0
+        seeds = json.loads(seed_path.read_text(encoding="utf-8"))
+        n = 0
+        for s in seeds:
+            self.ingest(
+                src_content=s["file_content"],
+                seam_id=s["seam_id"],
+                ref=s["ref"],
+                summary=s["summary"],
+                target=s["target"],
+                deps=s.get("deps"),
+                env_vars=s.get("env_vars"),
+                tradeoffs=s.get("tradeoffs", ""),
+                barrel_snippet=s.get("barrel_snippet"),
+                requires_prisma_model=s.get("requires_prisma_model"),
+            )
+            n += 1
+        logger.info(f"bootstrap: 从 seed 导入 {n} 个候选到 {self.store.store_dir}")
+        return n
+
+
+# 单例（MCP server 复用同一个 backend，避免重复加载模型）
+_BACKEND: Optional[MemoryBackend] = None
+
+
+def get_backend() -> MemoryBackend:
+    """获取全局 MemoryBackend 单例。store_dir 由 LOOM_STORE_DIR 决定（默认 ~/.loom）。"""
+    global _BACKEND
+    if _BACKEND is None:
+        import os
+        store_dir = os.environ.get("LOOM_STORE_DIR", str(Path.home() / ".loom"))
+        _BACKEND = MemoryBackend(store_dir=str(Path(store_dir) / "facts"))
+        _BACKEND.bootstrap_from_seed()  # 首次自动导入 seed
+    return _BACKEND

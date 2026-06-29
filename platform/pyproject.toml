@@ -12,6 +12,7 @@ dependencies = [
     "mcp>=1.2",
     "openai>=1.0",
     "tokenizers==0.22.2",
+    "faiss-cpu>=1.14.3",
 ]
 
 [project.scripts]

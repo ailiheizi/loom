@@ -78,8 +78,17 @@ def loom_propose(idea_json: str) -> str:
       （idea_id / title / description / core_ref / capability_intents[{intent, seam_id}]）。
     返回：GradientProposal JSON 文本。
     """
-    idea_path = _write_idea_tmp(idea_json)
-    proposal = _propose(idea_path)
+    import os
+    idea = json.loads(idea_json)
+    if os.environ.get("LOOM_BACKEND", "memory") == "memory":
+        # 走 ~/.loom 的 memory-engine（发布/uvx 默认）
+        from memory_backend import get_backend
+        from propose import propose_via_backend
+        proposal = propose_via_backend(idea, get_backend())
+    else:
+        # 走仓库 candidates/（开发模式）
+        idea_path = _write_idea_tmp(idea_json)
+        proposal = _propose(idea_path)
     return proposal.model_dump_json(indent=2)
 
 
@@ -217,7 +226,8 @@ def loom_ingest(paths: list[str], seam_hint: str = "", description: str = "") ->
             continue
 
     for file_path in paths:
-        src_p = ROOT / file_path
+        p = P(file_path)
+        src_p = p if p.is_absolute() else (ROOT / file_path)
         if not src_p.exists():
             results["errors"].append({"path": file_path, "error": "文件不存在"})
             continue
@@ -263,22 +273,29 @@ def loom_ingest(paths: list[str], seam_hint: str = "", description: str = "") ->
             f"{exports[0].name}: {exports[0].signature[:80]}" if exports else f"组件 {ref}"
         )
 
-        # 调已有的 ingest_file 入库
-        meta_path = ingest_file(
-            src_path=src_p,
-            seam_id=seam_id,
-            ref=ref,
-            summary=summary,
-            target=target,
-            candidates_root=ROOT / "candidates",
-        )
+        # 入库：memory 模式进 ~/.loom FactStore，否则进仓库 candidates/
+        import os
+        if os.environ.get("LOOM_BACKEND", "memory") == "memory":
+            from memory_backend import get_backend
+            get_backend().ingest(
+                src_content=src, seam_id=seam_id, ref=ref,
+                summary=summary, target=target,
+            )
+            meta_loc = f"~/.loom (fact)"
+        else:
+            meta_path = ingest_file(
+                src_path=src_p, seam_id=seam_id, ref=ref,
+                summary=summary, target=target,
+                candidates_root=ROOT / "candidates",
+            )
+            meta_loc = str(meta_path.relative_to(ROOT))
         existing_hashes.add(content_hash)
         results["ingested"].append({
             "ref": ref,
             "seam_id": seam_id,
             "target": target,
             "path": file_path,
-            "meta": str(meta_path.relative_to(ROOT)),
+            "meta": meta_loc,
         })
 
     return json.dumps(results, ensure_ascii=False, indent=2)
@@ -302,8 +319,14 @@ def loom_get_files(plan_json: str) -> str:
     """
     from get_files import get_files
 
+    import os
     plan = c.AssemblyPlan.model_validate_json(plan_json)
-    result = get_files(plan)
+    if os.environ.get("LOOM_BACKEND", "memory") == "memory":
+        from get_files import get_files_via_backend
+        from memory_backend import get_backend
+        result = get_files_via_backend(plan, get_backend())
+    else:
+        result = get_files(plan)
     return json.dumps(result, ensure_ascii=False)
 
 

@@ -1,0 +1,502 @@
+[
+  {
+    "ref": "credentials-auth",
+    "seam_id": "auth.oauth_provider",
+    "summary": "账号密码登录 provider（NextAuth v5 Credentials），非 OAuth，邮箱+密码 authorize，接入 providers[]",
+    "target": "src/server/auth/providers/credentials.ts",
+    "file_content": "import CredentialsProvider from \"next-auth/providers/credentials\";\n\n/**\n * 账号密码登录 provider（NextAuth v5 Credentials）。\n * 非 OAuth：用户用邮箱+密码登录。authorize 里校验凭据（这里给最小骨架，\n * 真实项目应查库 + 比对 hash）。接入 authConfig.providers[]。\n */\nexport const credentialsProvider = CredentialsProvider({\n  name: \"Credentials\",\n  credentials: {\n    email: { label: \"Email\", type: \"email\" },\n    password: { label: \"Password\", type: \"password\" },\n  },\n  authorize(credentials: Record<string, unknown> | undefined) {\n    const email = credentials?.email;\n    const password = credentials?.password;\n    if (typeof email !== \"string\" || typeof password !== \"string\") {\n      return null;\n    }\n    if (email.length === 0 || password.length === 0) {\n      return null;\n    }\n    // 最小骨架：真实项目在此查库 + 比对密码 hash。\n    return { id: email, email, name: email.split(\"@\")[0] ?? email };\n  },\n});\n",
+    "deps": [],
+    "env_vars": [],
+    "tradeoffs": "NextAuth Credentials（账号密码）。无第三方依赖、自主可控；需自行管理密码安全/哈希，安全责任更重。",
+    "barrel_snippet": {
+      "import": "import { credentialsProvider } from \"~/server/auth/providers/credentials\";",
+      "register": "credentialsProvider,"
+    },
+    "requires_prisma_model": null
+  },
+  {
+    "ref": "github-oauth",
+    "seam_id": "auth.oauth_provider",
+    "summary": "NextAuth v5 的 GitHub OAuth provider，读取 AUTH_GITHUB_ID/SECRET 环境变量",
+    "target": "src/server/auth/providers/github.ts",
+    "file_content": "import GitHubProvider from \"next-auth/providers/github\";\n\nimport { env } from \"~/env\";\n\n/**\n * 配置好的 GitHub OAuth provider，加入 authConfig.providers[]。\n * 需要环境变量 AUTH_GITHUB_ID / AUTH_GITHUB_SECRET。\n */\nexport const githubProvider = GitHubProvider({\n  clientId: env.AUTH_GITHUB_ID,\n  clientSecret: env.AUTH_GITHUB_SECRET,\n});\n",
+    "deps": [],
+    "env_vars": [
+      "AUTH_GITHUB_ID",
+      "AUTH_GITHUB_SECRET"
+    ],
+    "tradeoffs": "NextAuth GitHub provider。面向开发者/技术产品的登录首选；非技术用户覆盖不如 Google。",
+    "barrel_snippet": {
+      "import": "import { githubProvider } from \"~/server/auth/providers/github\";",
+      "register": "githubProvider,"
+    },
+    "requires_prisma_model": null
+  },
+  {
+    "ref": "google-oauth",
+    "seam_id": "auth.oauth_provider",
+    "summary": "NextAuth v5 的 Google OAuth provider，读取 AUTH_GOOGLE_ID/SECRET 环境变量",
+    "target": "src/server/auth/providers/google.ts",
+    "file_content": "import GoogleProvider from \"next-auth/providers/google\";\n\nimport { env } from \"~/env\";\n\n/**\n * 配置好的 Google OAuth provider，加入 authConfig.providers[]。\n * 需要环境变量 AUTH_GOOGLE_ID / AUTH_GOOGLE_SECRET。\n */\nexport const googleProvider = GoogleProvider({\n  clientId: env.AUTH_GOOGLE_ID,\n  clientSecret: env.AUTH_GOOGLE_SECRET,\n});\n",
+    "deps": [],
+    "env_vars": [
+      "AUTH_GOOGLE_ID",
+      "AUTH_GOOGLE_SECRET"
+    ],
+    "tradeoffs": "NextAuth Google provider，接 authConfig.providers[]。覆盖最广的消费级登录；需配 Google OAuth 凭据。",
+    "barrel_snippet": {
+      "import": "import { googleProvider } from \"~/server/auth/providers/google\";",
+      "register": "googleProvider,"
+    },
+    "requires_prisma_model": null
+  },
+  {
+    "ref": "magic-link",
+    "seam_id": "auth.oauth_provider",
+    "summary": "Magic-link 风格邮箱登录（Credentials 实现，零依赖）。邮箱+验证码登录，加入 providers[]。",
+    "target": "src/server/auth/providers/magic-link.ts",
+    "file_content": "import CredentialsProvider from \"next-auth/providers/credentials\";\n\n/**\n * Magic-link 风格的邮箱登录 provider（用 Credentials 实现，零外部依赖）。\n * 接收邮箱 + 一次性验证码，校验通过即登录。加入 authConfig.providers[]。\n * 注：生产需接真实邮件发送 + 验证码存储；此处为可编译的骨架（验证码校验留 TODO）。\n */\nexport const magicLinkProvider = CredentialsProvider({\n  id: \"magic-link\",\n  name: \"邮箱登录\",\n  credentials: {\n    email: { label: \"邮箱\", type: \"email\" },\n    code: { label: \"验证码\", type: \"text\" },\n  },\n  authorize(credentials) {\n    const email = credentials?.email;\n    const code = credentials?.code;\n    if (typeof email !== \"string\" || typeof code !== \"string\") {\n      return null;\n    }\n    // TODO: 校验 code 与发送记录是否匹配（接邮件服务后实现）\n    if (code.length < 4) {\n      return null;\n    }\n    return { id: email, email, name: email.split(\"@\")[0] ?? email };\n  },\n});\n",
+    "deps": [],
+    "env_vars": [],
+    "tradeoffs": "邮箱+验证码登录（Credentials 实现，零依赖）。适合无第三方 OAuth 的自主登录；验证码校验是骨架，生产需接邮件服务+存储。",
+    "barrel_snippet": {
+      "import": "import { magicLinkProvider } from \"~/server/auth/providers/magic-link\";",
+      "register": "magicLinkProvider,"
+    },
+    "requires_prisma_model": null
+  },
+  {
+    "ref": "code-block-markdown-view",
+    "seam_id": "content.markdown_render",
+    "summary": "支持 ``` 代码块的 markdown 渲染，代码块内原样转义。零依赖。",
+    "target": "src/app/_components/markdown-view.tsx",
+    "file_content": "\"use client\";\n\ninterface MarkdownViewProps {\n  source: string;\n}\n\nfunction escapeHtml(text: string): string {\n  return text.replace(/&/g, \"&amp;\").replace(/</g, \"&lt;\").replace(/>/g, \"&gt;\");\n}\n\nfunction renderInline(text: string): string {\n  let out = escapeHtml(text);\n  out = out.replace(/\\*\\*([^*]+)\\*\\*/g, \"<strong>$1</strong>\");\n  out = out.replace(/\\*([^*]+)\\*/g, \"<em>$1</em>\");\n  out = out.replace(/`([^`]+)`/g, \"<code>$1</code>\");\n  out = out.replace(/\\[([^\\]]+)\\]\\(([^)]+)\\)/g, '<a href=\"$2\">$1</a>');\n  return out;\n}\n\n/**\n * 支持 ``` 代码块（fenced code）的 markdown 渲染。保持 MarkdownView({source}) 契约。\n * 代码块内不做 inline 解析、原样转义。零依赖。\n */\nfunction toHtml(markdown: string): string {\n  const lines = markdown.split(\"\\n\");\n  const html: string[] = [];\n  let i = 0;\n  while (i < lines.length) {\n    const line = lines[i] ?? \"\";\n    if (/^```/.test(line)) {\n      const code: string[] = [];\n      i++;\n      while (i < lines.length && !/^```/.test(lines[i] ?? \"\")) {\n        code.push(escapeHtml(lines[i] ?? \"\"));\n        i++;\n      }\n      i++; // 跳过结束 ```\n      html.push(`<pre><code>${code.join(\"\\n\")}</code></pre>`);\n      continue;\n    }\n    const heading = /^(#{1,6})\\s+(.*)$/.exec(line);\n    if (heading) {\n      const level = (heading[1] ?? \"\").length;\n      html.push(`<h${level}>${renderInline(heading[2] ?? \"\")}</h${level}>`);\n      i++;\n      continue;\n    }\n    if (line.trim()) html.push(`<p>${renderInline(line)}</p>`);\n    i++;\n  }\n  return html.join(\"\");\n}\n\nexport function MarkdownView({ source }: MarkdownViewProps) {\n  return <div className=\"prose\" dangerouslySetInnerHTML={{ __html: toHtml(source) }} />;\n}\n",
+    "deps": [],
+    "env_vars": [],
+    "tradeoffs": "支持 ``` 代码块的 markdown 渲染，代码原样转义。适合技术博客/文档；无语法高亮（要高亮需引 highlight.js 等）。",
+    "barrel_snippet": {},
+    "requires_prisma_model": null
+  },
+  {
+    "ref": "markdown-view",
+    "seam_id": "content.markdown_render",
+    "summary": "React 组件 MarkdownView，把 markdown 文本渲染为 HTML（标题/列表/粗体/链接），零依赖正则实现",
+    "target": "src/app/_components/markdown-view.tsx",
+    "file_content": "\"use client\";\n\ninterface MarkdownViewProps {\n  source: string;\n}\n\nfunction escapeHtml(text: string): string {\n  return text\n    .replace(/&/g, \"&amp;\")\n    .replace(/</g, \"&lt;\")\n    .replace(/>/g, \"&gt;\");\n}\n\nfunction renderInline(text: string): string {\n  let out = escapeHtml(text);\n  out = out.replace(/\\*\\*([^*]+)\\*\\*/g, \"<strong>$1</strong>\");\n  out = out.replace(/\\*([^*]+)\\*/g, \"<em>$1</em>\");\n  out = out.replace(/`([^`]+)`/g, \"<code>$1</code>\");\n  out = out.replace(/\\[([^\\]]+)\\]\\(([^)]+)\\)/g, '<a href=\"$2\">$1</a>');\n  return out;\n}\n\nfunction toHtml(markdown: string): string {\n  const lines = markdown.split(\"\\n\");\n  const html: string[] = [];\n  let inList = false;\n\n  for (const line of lines) {\n    const heading = /^(#{1,6})\\s+(.*)$/.exec(line);\n    if (heading) {\n      if (inList) {\n        html.push(\"</ul>\");\n        inList = false;\n      }\n      const level = (heading[1] ?? \"\").length;\n      html.push(`<h${level}>${renderInline(heading[2] ?? \"\")}</h${level}>`);\n      continue;\n    }\n    const item = /^[-*]\\s+(.*)$/.exec(line);\n    if (item) {\n      if (!inList) {\n        html.push(\"<ul>\");\n        inList = true;\n      }\n      html.push(`<li>${renderInline(item[1] ?? \"\")}</li>`);\n      continue;\n    }\n    if (inList) {\n      html.push(\"</ul>\");\n      inList = false;\n    }\n    if (line.trim() === \"\") continue;\n    html.push(`<p>${renderInline(line)}</p>`);\n  }\n  if (inList) html.push(\"</ul>\");\n  return html.join(\"\\n\");\n}\n\nexport function MarkdownView({ source }: MarkdownViewProps) {\n  return (\n    <div\n      className=\"prose max-w-none\"\n      dangerouslySetInnerHTML={{ __html: toHtml(source) }}\n    />\n  );\n}\n",
+    "deps": [],
+    "env_vars": [],
+    "tradeoffs": "Markdown 渲染组件。适合内容展示；具体依赖见 deps，注意 XSS（渲染不可信内容需 sanitize）。",
+    "barrel_snippet": {},
+    "requires_prisma_model": null
+  },
+  {
+    "ref": "minimal-markdown-view",
+    "seam_id": "content.markdown_render",
+    "summary": "极简 markdown 渲染，只处理标题与段落，不解析 inline，最安全最轻。零依赖。",
+    "target": "src/app/_components/markdown-view.tsx",
+    "file_content": "\"use client\";\n\ninterface MarkdownViewProps {\n  source: string;\n}\n\nfunction escapeHtml(text: string): string {\n  return text.replace(/&/g, \"&amp;\").replace(/</g, \"&lt;\").replace(/>/g, \"&gt;\");\n}\n\n/**\n * 极简 markdown 渲染：只处理标题与段落，不解析 inline 标记。保持 MarkdownView({source}) 契约。\n * 最轻量、最安全（不渲染任意 inline HTML），适合可信度低或只需基础排版的场景。零依赖。\n */\nfunction toHtml(markdown: string): string {\n  const html: string[] = [];\n  for (const line of markdown.split(\"\\n\")) {\n    const heading = /^(#{1,6})\\s+(.*)$/.exec(line);\n    if (heading) {\n      const level = (heading[1] ?? \"\").length;\n      html.push(`<h${level}>${escapeHtml(heading[2] ?? \"\")}</h${level}>`);\n    } else if (line.trim()) {\n      html.push(`<p>${escapeHtml(line)}</p>`);\n    }\n  }\n  return html.join(\"\");\n}\n\nexport function MarkdownView({ source }: MarkdownViewProps) {\n  return <div className=\"prose\" dangerouslySetInnerHTML={{ __html: toHtml(source) }} />;\n}\n",
+    "deps": [],
+    "env_vars": [],
+    "tradeoffs": "极简 markdown，只渲染标题+段落、不解析 inline。最安全最轻；功能也最少，适合可信度低或只需基础排版。",
+    "barrel_snippet": {},
+    "requires_prisma_model": null
+  },
+  {
+    "ref": "table-markdown-view",
+    "seam_id": "content.markdown_render",
+    "summary": "支持 GFM 表格的 markdown 渲染，解析 | a | b | 表格。零依赖正则。",
+    "target": "src/app/_components/markdown-view.tsx",
+    "file_content": "\"use client\";\n\ninterface MarkdownViewProps {\n  source: string;\n}\n\nfunction escapeHtml(text: string): string {\n  return text.replace(/&/g, \"&amp;\").replace(/</g, \"&lt;\").replace(/>/g, \"&gt;\");\n}\n\nfunction renderInline(text: string): string {\n  let out = escapeHtml(text);\n  out = out.replace(/\\*\\*([^*]+)\\*\\*/g, \"<strong>$1</strong>\");\n  out = out.replace(/\\*([^*]+)\\*/g, \"<em>$1</em>\");\n  out = out.replace(/`([^`]+)`/g, \"<code>$1</code>\");\n  out = out.replace(/\\[([^\\]]+)\\]\\(([^)]+)\\)/g, '<a href=\"$2\">$1</a>');\n  return out;\n}\n\n/**\n * 支持 GFM 表格的 markdown 渲染。保持 MarkdownView({source}) 契约。\n * 在基础渲染上额外解析 | a | b | 形式的表格。零依赖正则实现。\n */\nfunction toHtml(markdown: string): string {\n  const lines = markdown.split(\"\\n\");\n  const html: string[] = [];\n  let i = 0;\n  while (i < lines.length) {\n    const line = lines[i] ?? \"\";\n    // 表格：当前行和下一行是 |---| 分隔\n    const next = lines[i + 1] ?? \"\";\n    if (/^\\s*\\|.*\\|\\s*$/.test(line) && /^\\s*\\|[\\s:|-]+\\|\\s*$/.test(next)) {\n      const parseRow = (r: string): string[] =>\n        r.trim().replace(/^\\||\\|$/g, \"\").split(\"|\").map((c) => c.trim());\n      const headers = parseRow(line);\n      html.push(\"<table><thead><tr>\");\n      for (const h of headers) html.push(`<th>${renderInline(h)}</th>`);\n      html.push(\"</tr></thead><tbody>\");\n      i += 2;\n      while (i < lines.length && /^\\s*\\|.*\\|\\s*$/.test(lines[i] ?? \"\")) {\n        const cells = parseRow(lines[i] ?? \"\");\n        html.push(\"<tr>\");\n        for (const cell of cells) html.push(`<td>${renderInline(cell)}</td>`);\n        html.push(\"</tr>\");\n        i++;\n      }\n      html.push(\"</tbody></table>\");\n      continue;\n    }\n    const heading = /^(#{1,6})\\s+(.*)$/.exec(line);\n    if (heading) {\n      const level = (heading[1] ?? \"\").length;\n      html.push(`<h${level}>${renderInline(heading[2] ?? \"\")}</h${level}>`);\n      i++;\n      continue;\n    }\n    if (line.trim()) html.push(`<p>${renderInline(line)}</p>`);\n    i++;\n  }\n  return html.join(\"\");\n}\n\nexport function MarkdownView({ source }: MarkdownViewProps) {\n  return <div className=\"prose\" dangerouslySetInnerHTML={{ __html: toHtml(source) }} />;\n}\n",
+    "deps": [],
+    "env_vars": [],
+    "tradeoffs": "支持 GFM 表格的 markdown 渲染。适合带表格的文档/笔记；inline 渲染走 dangerouslySetInnerHTML，不可信内容需 sanitize。",
+    "barrel_snippet": {},
+    "requires_prisma_model": null
+  },
+  {
+    "ref": "csv-contacts-import",
+    "seam_id": "data.bulk_import",
+    "summary": "parseContactsCsv 把 CSV 文本解析为 {name,description}[]，支持引号转义和中英文表头，零依赖",
+    "target": "src/server/import/csv-import.ts",
+    "file_content": "type ParsedRecord = {\n  name: string;\n  description?: string;\n};\n\nfunction splitCsvLine(line: string): string[] {\n  const fields: string[] = [];\n  let cur = \"\";\n  let inQuotes = false;\n  for (let i = 0; i < line.length; i++) {\n    const ch = line[i];\n    if (inQuotes) {\n      if (ch === '\"') {\n        if (line[i + 1] === '\"') {\n          cur += '\"';\n          i++;\n        } else {\n          inQuotes = false;\n        }\n      } else {\n        cur += ch;\n      }\n    } else if (ch === '\"') {\n      inQuotes = true;\n    } else if (ch === \",\") {\n      fields.push(cur);\n      cur = \"\";\n    } else {\n      cur += ch;\n    }\n  }\n  fields.push(cur);\n  return fields;\n}\n\nexport function parseContactsCsv(csv: string): ParsedRecord[] {\n  const lines = csv.replace(/\\r\\n/g, \"\\n\").replace(/\\r/g, \"\\n\").split(\"\\n\");\n  const records: ParsedRecord[] = [];\n  let headerCols: string[] | null = null;\n\n  for (const rawLine of lines) {\n    const line = rawLine.trim();\n    if (line === \"\") continue;\n    const fields = splitCsvLine(line);\n    if (headerCols === null) {\n      headerCols = fields.map((f) => f.trim().toLowerCase());\n      continue;\n    }\n    const row: Record<string, string> = {};\n    headerCols.forEach((col, idx) => {\n      row[col] = (fields[idx] ?? \"\").trim();\n    });\n    const name = row.name ?? row.姓名 ?? fields[0] ?? \"\";\n    if (name === \"\") continue;\n    records.push({\n      name,\n      description: row.description ?? row.备注 ?? undefined,\n    });\n  }\n  return records;\n}\n",
+    "deps": [],
+    "env_vars": [],
+    "tradeoffs": "CSV 批量导入，字段固定 name/description（Contact 语义）。适合通讯录类；其他实体需改字段映射。",
+    "barrel_snippet": {},
+    "requires_prisma_model": null
+  },
+  {
+    "ref": "generic-csv-import",
+    "seam_id": "data.bulk_import",
+    "summary": "parseCsv 通用 CSV 解析，首行表头映射为 Record，不绑定具体实体。零依赖。",
+    "target": "src/server/import/csv-import.ts",
+    "file_content": "type ParsedRow = Record<string, string>;\n\nfunction splitCsvLine(line: string): string[] {\n  const fields: string[] = [];\n  let cur = \"\";\n  let inQuotes = false;\n  for (let i = 0; i < line.length; i++) {\n    const ch = line[i];\n    if (inQuotes) {\n      if (ch === '\"') {\n        if (line[i + 1] === '\"') {\n          cur += '\"';\n          i++;\n        } else {\n          inQuotes = false;\n        }\n      } else {\n        cur += ch;\n      }\n    } else if (ch === '\"') {\n      inQuotes = true;\n    } else if (ch === \",\") {\n      fields.push(cur);\n      cur = \"\";\n    } else {\n      cur += ch;\n    }\n  }\n  fields.push(cur);\n  return fields;\n}\n\n/**\n * 通用 CSV 解析：首行作表头，每行映射为 Record<string,string>。\n * 不绑定具体实体（对比 csv-contacts-import 的固定 name/description）。零依赖。\n */\nexport function parseCsv(csv: string): ParsedRow[] {\n  const lines = csv.split(/\\r?\\n/).filter((l) => l.trim() !== \"\");\n  if (lines.length === 0) return [];\n  const headers = splitCsvLine(lines[0] ?? \"\");\n  const rows: ParsedRow[] = [];\n  for (let i = 1; i < lines.length; i++) {\n    const cells = splitCsvLine(lines[i] ?? \"\");\n    const row: ParsedRow = {};\n    headers.forEach((h, idx) => {\n      row[h] = cells[idx] ?? \"\";\n    });\n    rows.push(row);\n  }\n  return rows;\n}\n",
+    "deps": [],
+    "env_vars": [],
+    "tradeoffs": "通用 CSV 解析，首行表头→Record<string,string>，不绑定实体。适合任意表格导入；调用方自行映射到 model。",
+    "barrel_snippet": {},
+    "requires_prisma_model": null
+  },
+  {
+    "ref": "json-import",
+    "seam_id": "data.bulk_import",
+    "summary": "parseJsonImport 解析 JSON 数组批量导入，值转字符串。零依赖。",
+    "target": "src/server/import/json-import.ts",
+    "file_content": "type ParsedRow = Record<string, string>;\n\n/**\n * JSON 数组批量导入：解析 JSON 数组，每项规整为 Record<string,string>（值转字符串）。\n * 适合从 API/导出的 JSON 批量导入。零依赖。非数组或非法 JSON 返回空数组。\n */\nexport function parseJsonImport(json: string): ParsedRow[] {\n  let data: unknown;\n  try {\n    data = JSON.parse(json);\n  } catch {\n    return [];\n  }\n  if (!Array.isArray(data)) return [];\n  const rows: ParsedRow[] = [];\n  for (const item of data) {\n    if (item === null || typeof item !== \"object\") continue;\n    const row: ParsedRow = {};\n    for (const [k, v] of Object.entries(item as Record<string, unknown>)) {\n      row[k] = v === null || v === undefined ? \"\" : String(v);\n    }\n    rows.push(row);\n  }\n  return rows;\n}\n",
+    "deps": [],
+    "env_vars": [],
+    "tradeoffs": "JSON 数组批量导入，值转字符串。适合从 API/导出的 JSON 导入；非数组/非法 JSON 返回空。",
+    "barrel_snippet": {},
+    "requires_prisma_model": null
+  },
+  {
+    "ref": "tsv-import",
+    "seam_id": "data.bulk_import",
+    "summary": "parseTsvImport 制表符分隔导入，适合 Excel/Sheets 粘贴。零依赖。",
+    "target": "src/server/import/tsv-import.ts",
+    "file_content": "type ParsedRow = Record<string, string>;\n\n/**\n * TSV（制表符分隔）批量导入：首行表头，按 \\t 切列。\n * 适合从 Excel/Sheets 复制粘贴的数据（TSV 比 CSV 少引号转义问题）。零依赖。\n */\nexport function parseTsvImport(tsv: string): ParsedRow[] {\n  const lines = tsv.split(/\\r?\\n/).filter((l) => l.trim() !== \"\");\n  if (lines.length === 0) return [];\n  const headers = (lines[0] ?? \"\").split(\"\\t\");\n  const rows: ParsedRow[] = [];\n  for (let i = 1; i < lines.length; i++) {\n    const cells = (lines[i] ?? \"\").split(\"\\t\");\n    const row: ParsedRow = {};\n    headers.forEach((h, idx) => {\n      row[h.trim()] = (cells[idx] ?? \"\").trim();\n    });\n    rows.push(row);\n  }\n  return rows;\n}\n",
+    "deps": [],
+    "env_vars": [],
+    "tradeoffs": "TSV 制表符分隔导入。适合 Excel/Sheets 复制粘贴；字段含制表符会错列。",
+    "barrel_snippet": {},
+    "requires_prisma_model": null
+  },
+  {
+    "ref": "generic-crud-factory",
+    "seam_id": "data.crud_resource",
+    "summary": "可复用的 tRPC v11 CRUD router 工厂，接收 Prisma 风格 model delegate 并生成 list/get/create/update/delete",
+    "target": "src/server/api/routers/crud-factory.ts",
+    "file_content": "import { z } from \"zod\";\n\nimport { createTRPCRouter, protectedProcedure } from \"~/server/api/trpc\";\nimport { db } from \"~/server/db\";\n\ntype CrudModel = {\n  findMany: (args: { orderBy: { createdAt: \"desc\" } }) => Promise<unknown>;\n  findUnique: (args: { where: { id: string } }) => Promise<unknown>;\n  create: (args: {\n    data: { name: string; description?: string | undefined };\n  }) => Promise<unknown>;\n  update: (args: {\n    where: { id: string };\n    data: { name?: string | undefined; description?: string | undefined };\n  }) => Promise<unknown>;\n  delete: (args: { where: { id: string } }) => Promise<unknown>;\n};\n\nconst createInput = z.object({\n  name: z.string().min(1),\n  description: z.string().min(1).optional(),\n});\n\nconst updateInput = z.object({\n  id: z.string(),\n  name: z.string().min(1).optional(),\n  description: z.string().min(1).optional(),\n});\n\nexport const createCrudRouter = (model: CrudModel) =>\n  createTRPCRouter({\n    list: protectedProcedure.query(async () => {\n      return model.findMany({\n        orderBy: { createdAt: \"desc\" },\n      });\n    }),\n\n    get: protectedProcedure\n      .input(z.object({ id: z.string() }))\n      .query(async ({ input }) => {\n        return model.findUnique({\n          where: { id: input.id },\n        });\n      }),\n\n    create: protectedProcedure\n      .input(createInput)\n      .mutation(async ({ input }) => {\n        return model.create({\n          data: {\n            name: input.name,\n            description: input.description,\n          },\n        });\n      }),\n\n    update: protectedProcedure\n      .input(updateInput)\n      .mutation(async ({ input }) => {\n        const { id, ...data } = input;\n\n        return model.update({\n          where: { id },\n          data,\n        });\n      }),\n\n    delete: protectedProcedure\n      .input(z.object({ id: z.string() }))\n      .mutation(async ({ input }) => {\n        return model.delete({\n          where: { id: input.id },\n        });\n      }),\n  });\n\n// 用 db 单例（模块级，非请求期 ctx）绑定具体 model，导出成品 router。\n// 注册进 appRouter 时直接引用此成品（project: projectRouter），不在 root.ts 顶层调工厂——\n// 顶层没有 ctx，createCrudRouter(ctx.db.x) 会 TS2304。\nexport const projectRouter = createCrudRouter(db.project);\n",
+    "deps": [],
+    "env_vars": [],
+    "tradeoffs": "泛型 CRUD 工厂，按资源名生成 router。适合多资源复用、减少样板；抽象层带来理解成本，定制单点逻辑较绕。",
+    "barrel_snippet": {
+      "import": "import { projectRouter } from \"~/server/api/routers/crud-factory\";",
+      "register": "project: projectRouter,"
+    },
+    "requires_prisma_model": "Project"
+  },
+  {
+    "ref": "post-router",
+    "seam_id": "data.crud_resource",
+    "summary": "Defines the post CRUD router",
+    "target": "src/server/api/routers/post.ts",
+    "file_content": "import { z } from \"zod\";\n\nimport {\n  createTRPCRouter,\n  protectedProcedure,\n  publicProcedure,\n} from \"~/server/api/trpc\";\n\nexport const postRouter = createTRPCRouter({\n  hello: publicProcedure\n    .input(z.object({ text: z.string() }))\n    .query(({ input }) => {\n      return {\n        greeting: `Hello ${input.text}`,\n      };\n    }),\n\n  create: protectedProcedure\n    .input(z.object({ name: z.string().min(1) }))\n    .mutation(async ({ ctx, input }) => {\n      return ctx.db.post.create({\n        data: {\n          name: input.name,\n          createdBy: { connect: { id: ctx.session.user.id } },\n        },\n      });\n    }),\n\n  getLatest: protectedProcedure.query(async ({ ctx }) => {\n    const post = await ctx.db.post.findFirst({\n      orderBy: { createdAt: \"desc\" },\n      where: { createdBy: { id: ctx.session.user.id } },\n    });\n\n    return post ?? null;\n  }),\n\n  getSecretMessage: protectedProcedure.query(() => {\n    return \"you can now see this secret message!\";\n  }),\n});\n",
+    "deps": [],
+    "env_vars": [],
+    "tradeoffs": "tRPC router，Post 资源 CRUD（t3 经典示例）。适合博客/内容类；字段固定为 Post 语义，其他资源需改写。",
+    "barrel_snippet": {
+      "import": "import { postRouter } from \"~/server/api/routers/post\";",
+      "register": "crud_resource: postRouter,"
+    },
+    "requires_prisma_model": null
+  },
+  {
+    "ref": "project-crud-router",
+    "seam_id": "data.crud_resource",
+    "summary": "Project 资源的 tRPC v11 CRUD router，使用 protectedProcedure、zod input 与 Prisma ctx.db.project",
+    "target": "src/server/api/routers/project.ts",
+    "file_content": "import { z } from \"zod\";\n\nimport { createTRPCRouter, protectedProcedure } from \"~/server/api/trpc\";\n\nconst createProjectInput = z.object({\n  name: z.string().min(1),\n  description: z.string().min(1).optional(),\n});\n\nconst updateProjectInput = z.object({\n  id: z.string(),\n  name: z.string().min(1).optional(),\n  description: z.string().min(1).optional(),\n});\n\nexport const projectRouter = createTRPCRouter({\n  list: protectedProcedure.query(async ({ ctx }) => {\n    return ctx.db.project.findMany({\n      orderBy: { createdAt: \"desc\" },\n    });\n  }),\n\n  get: protectedProcedure\n    .input(z.object({ id: z.string() }))\n    .query(async ({ ctx, input }) => {\n      return ctx.db.project.findUnique({\n        where: { id: input.id },\n      });\n    }),\n\n  create: protectedProcedure\n    .input(createProjectInput)\n    .mutation(async ({ ctx, input }) => {\n      return ctx.db.project.create({\n        data: {\n          name: input.name,\n          description: input.description,\n        },\n      });\n    }),\n\n  update: protectedProcedure\n    .input(updateProjectInput)\n    .mutation(async ({ ctx, input }) => {\n      const { id, ...data } = input;\n\n      return ctx.db.project.update({\n        where: { id },\n        data,\n      });\n    }),\n\n  delete: protectedProcedure\n    .input(z.object({ id: z.string() }))\n    .mutation(async ({ ctx, input }) => {\n      return ctx.db.project.delete({\n        where: { id: input.id },\n      });\n    }),\n});\n",
+    "deps": [],
+    "env_vars": [],
+    "tradeoffs": "tRPC router，专为 Project 资源的完整 CRUD（list/get/create/update/delete）。需对应 prisma model；最贴合标准 CRUD 需求。",
+    "barrel_snippet": {
+      "import": "import { projectRouter } from \"~/server/api/routers/project\";",
+      "register": "project: projectRouter,"
+    },
+    "requires_prisma_model": "Project"
+  },
+  {
+    "ref": "readonly-list",
+    "seam_id": "data.crud_resource",
+    "summary": "只读列表 tRPC router（list+get，无写操作），适合只展示不编辑的资源，比全 CRUD 更轻更安全",
+    "target": "src/server/api/routers/readonly-list.ts",
+    "file_content": "import { createTRPCRouter, protectedProcedure } from \"~/server/api/trpc\";\nimport { db } from \"~/server/db\";\nimport { z } from \"zod\";\n\n/**\n * 只读列表 router（list + get，无写操作）。\n * 适合\"只展示不编辑\"的资源（如公告、日志、报表条目）。比全 CRUD 更轻，\n * 也更安全（无 mutation）。绑定 db.project（复用 Project model）。\n */\nexport const readonlyListRouter = createTRPCRouter({\n  list: protectedProcedure.query(() => {\n    return db.project.findMany({ orderBy: { createdAt: \"desc\" } });\n  }),\n  get: protectedProcedure\n    .input(z.object({ id: z.string() }))\n    .query(({ input }) => {\n      return db.project.findUnique({ where: { id: input.id } });\n    }),\n});\n",
+    "deps": [],
+    "env_vars": [],
+    "tradeoffs": "只读列表 router（仅 list/get）。适合纯展示/报表类资源；不支持写操作，需要增删改时不适用。",
+    "barrel_snippet": {
+      "import": "import { readonlyListRouter } from \"~/server/api/routers/readonly-list\";",
+      "register": "crud_resource: readonlyListRouter,"
+    },
+    "requires_prisma_model": "Project"
+  },
+  {
+    "ref": "data-url-upload",
+    "seam_id": "file.upload",
+    "summary": "uploadFile 把 File 读成 base64 data URL，零后端零依赖，适合 MVP/小文件预览。",
+    "target": "src/lib/upload/data-url-upload.ts",
+    "file_content": "/**\n * 本地 data-URL 上传：把 File 读成 base64 data URL，返回可直接用作 src 的 URL。\n * 零依赖、零后端，适合 MVP/预览（图片头像等小文件）。不持久化、不适合大文件。\n */\nexport async function uploadFile(file: File): Promise<{ url: string }> {\n  const dataUrl = await new Promise<string>((resolve, reject) => {\n    const reader = new FileReader();\n    reader.onload = () => resolve(typeof reader.result === \"string\" ? reader.result : \"\");\n    reader.onerror = () => reject(new Error(\"读取文件失败\"));\n    reader.readAsDataURL(file);\n  });\n  return { url: dataUrl };\n}\n",
+    "deps": [],
+    "env_vars": [],
+    "tradeoffs": "base64 data URL 上传，零后端零依赖。适合 MVP/头像等小文件预览；不持久化、大文件会撑爆内存。",
+    "barrel_snippet": {},
+    "requires_prisma_model": null
+  },
+  {
+    "ref": "presigned-url-upload",
+    "seam_id": "file.upload",
+    "summary": "uploadFile 把文件 PUT 到预签名 URL（S3/R2/OSS 模式），浏览器原生 fetch，零依赖。",
+    "target": "src/lib/upload/presigned-url-upload.ts",
+    "file_content": "/**\n * 预签名 URL 上传：把文件 PUT 到调用方提供的预签名 URL（S3/R2/OSS 常见模式），\n * 返回去掉 query 的可访问 URL。零依赖（浏览器原生 fetch）。\n * 需调用方先拿到 presignedUrl（由后端签发）；本函数只负责上传动作。\n */\nexport async function uploadFile(\n  file: File,\n  presignedUrl: string,\n): Promise<{ url: string }> {\n  const resp = await fetch(presignedUrl, {\n    method: \"PUT\",\n    body: file,\n    headers: { \"Content-Type\": file.type || \"application/octet-stream\" },\n  });\n  if (!resp.ok) {\n    throw new Error(`上传失败 HTTP ${resp.status}`);\n  }\n  const url = presignedUrl.split(\"?\")[0] ?? presignedUrl;\n  return { url };\n}\n",
+    "deps": [],
+    "env_vars": [],
+    "tradeoffs": "PUT 到预签名 URL（S3/R2/OSS）。适合生产对象存储；需后端先签发 URL，本函数只管上传动作。",
+    "barrel_snippet": {},
+    "requires_prisma_model": null
+  },
+  {
+    "ref": "clipboard-export-fn",
+    "seam_id": "report.custom_export",
+    "summary": "rowsToClipboardText/copyToClipboard 复制 CSV 到剪贴板，浏览器原生 clipboard API。零依赖。",
+    "target": "src/server/export/clipboard-export.ts",
+    "file_content": "type ExportRow = Record<string, string | number | boolean | null | undefined>;\n\nfunction escapeCell(value: string | number | boolean | null | undefined): string {\n  const str = value === null || value === undefined ? \"\" : String(value);\n  if (/[\",\\n\\r]/.test(str)) {\n    return `\"${str.replace(/\"/g, '\"\"')}\"`;\n  }\n  return str;\n}\n\n/**\n * 复制到剪贴板的导出。保持 (rows, columns?) 契约，产出 CSV 文本，\n * copyToClipboard 用浏览器原生 navigator.clipboard 写入。零依赖。\n */\nexport function rowsToClipboardText(rows: ExportRow[], columns?: string[]): string {\n  const first = rows[0];\n  if (!first) return \"\";\n  const cols = columns ?? Object.keys(first);\n  const header = cols.map(escapeCell).join(\",\");\n  const body = rows\n    .map((row) => cols.map((c) => escapeCell(row[c])).join(\",\"))\n    .join(\"\\n\");\n  return `${header}\\n${body}`;\n}\n\nexport async function copyToClipboard(rows: ExportRow[], columns?: string[]): Promise<boolean> {\n  const text = rowsToClipboardText(rows, columns);\n  try {\n    await navigator.clipboard.writeText(text);\n    return true;\n  } catch {\n    return false;\n  }\n}\n",
+    "deps": [],
+    "env_vars": [],
+    "tradeoffs": "零依赖，复制 CSV 到剪贴板（navigator.clipboard）。适合快速复制粘贴；依赖浏览器剪贴板权限，需 https/用户手势。",
+    "barrel_snippet": {},
+    "requires_prisma_model": null
+  },
+  {
+    "ref": "csv-export-fn",
+    "seam_id": "report.custom_export",
+    "summary": "rowsToCsv/toCsvBlob 把行数据导出为 CSV Blob，处理逗号引号换行转义，零依赖浏览器原生",
+    "target": "src/server/export/csv-export.ts",
+    "file_content": "type ExportRow = Record<string, string | number | boolean | null | undefined>;\n\nfunction escapeCell(value: string | number | boolean | null | undefined): string {\n  const str =\n    value === null || value === undefined ? \"\" : String(value);\n  if (/[\",\\n\\r]/.test(str)) {\n    return `\"${str.replace(/\"/g, '\"\"')}\"`;\n  }\n  return str;\n}\n\nexport function rowsToCsv(rows: ExportRow[], columns?: string[]): string {\n  const first = rows[0];\n  if (!first) return \"\";\n  const cols = columns ?? Object.keys(first);\n  const header = cols.map(escapeCell).join(\",\");\n  const body = rows\n    .map((row) => cols.map((c) => escapeCell(row[c])).join(\",\"))\n    .join(\"\\n\");\n  return `${header}\\n${body}`;\n}\n\nexport function toCsvBlob(rows: ExportRow[], columns?: string[]): Blob {\n  return new Blob([rowsToCsv(rows, columns)], {\n    type: \"text/csv;charset=utf-8;\",\n  });\n}\n",
+    "deps": [],
+    "env_vars": [],
+    "tradeoffs": "零依赖，浏览器原生 CSV（处理逗号/引号/换行转义）。通用导出首选；Excel 打开中文可能乱码（用 excel-csv 版）。",
+    "barrel_snippet": {},
+    "requires_prisma_model": null
+  },
+  {
+    "ref": "excel-csv-export-fn",
+    "seam_id": "report.custom_export",
+    "summary": "rowsToExcelCsv/toExcelCsvBlob 带 UTF-8 BOM 的 CSV，解决 Excel 中文乱码。零依赖。",
+    "target": "src/server/export/excel-csv-export.ts",
+    "file_content": "type ExportRow = Record<string, string | number | boolean | null | undefined>;\n\nfunction escapeCell(value: string | number | boolean | null | undefined): string {\n  const str = value === null || value === undefined ? \"\" : String(value);\n  if (/[\",\\n\\r]/.test(str)) {\n    return `\"${str.replace(/\"/g, '\"\"')}\"`;\n  }\n  return str;\n}\n\n// UTF-8 BOM：让 Excel 正确识别中文等多字节字符编码，避免乱码\nconst BOM = \"﻿\";\n\n/**\n * Excel 友好的 CSV 导出。保持 (rows, columns?) 契约，输出带 UTF-8 BOM 的 CSV，\n * 解决 Excel 打开中文 CSV 乱码问题。零依赖。\n */\nexport function rowsToExcelCsv(rows: ExportRow[], columns?: string[]): string {\n  const first = rows[0];\n  if (!first) return BOM;\n  const cols = columns ?? Object.keys(first);\n  const header = cols.map(escapeCell).join(\",\");\n  const body = rows\n    .map((row) => cols.map((c) => escapeCell(row[c])).join(\",\"))\n    .join(\"\\r\\n\");\n  return `${BOM}${header}\\r\\n${body}`;\n}\n\nexport function toExcelCsvBlob(rows: ExportRow[], columns?: string[]): Blob {\n  return new Blob([rowsToExcelCsv(rows, columns)], {\n    type: \"text/csv;charset=utf-8;\",\n  });\n}\n",
+    "deps": [],
+    "env_vars": [],
+    "tradeoffs": "零依赖，带 UTF-8 BOM 的 CSV，解决 Excel 中文乱码。面向 Excel 用户首选；纯文本/程序消费场景用普通 csv 即可。",
+    "barrel_snippet": {},
+    "requires_prisma_model": null
+  },
+  {
+    "ref": "json-export-fn",
+    "seam_id": "report.custom_export",
+    "summary": "rowsToJson/toJsonBlob 把行数据导出为 pretty JSON，支持列投影。零依赖。",
+    "target": "src/server/export/json-export.ts",
+    "file_content": "type ExportRow = Record<string, string | number | boolean | null | undefined>;\n\n/**\n * JSON 导出。保持与 csv-export-fn 同构的 (rows, columns?) 契约，\n * 输出 pretty-printed JSON 字符串 / Blob。零依赖。\n */\nexport function rowsToJson(rows: ExportRow[], columns?: string[]): string {\n  if (!columns) return JSON.stringify(rows, null, 2);\n  const projected = rows.map((row) => {\n    const obj: ExportRow = {};\n    for (const c of columns) {\n      obj[c] = row[c];\n    }\n    return obj;\n  });\n  return JSON.stringify(projected, null, 2);\n}\n\nexport function toJsonBlob(rows: ExportRow[], columns?: string[]): Blob {\n  return new Blob([rowsToJson(rows, columns)], {\n    type: \"application/json;charset=utf-8;\",\n  });\n}\n",
+    "deps": [],
+    "env_vars": [],
+    "tradeoffs": "零依赖，pretty JSON + 列投影。适合程序间数据交换/调试；不适合给非技术用户。",
+    "barrel_snippet": {},
+    "requires_prisma_model": null
+  },
+  {
+    "ref": "markdown-export-fn",
+    "seam_id": "report.custom_export",
+    "summary": "rowsToMarkdown/toMarkdownBlob 导出 GFM 表格，适合贴进 README/issue/文档。零依赖。",
+    "target": "src/server/export/markdown-export.ts",
+    "file_content": "type ExportRow = Record<string, string | number | boolean | null | undefined>;\n\nfunction escapeMdCell(value: string | number | boolean | null | undefined): string {\n  const str = value === null || value === undefined ? \"\" : String(value);\n  // Markdown 表格：转义竖线，换行替换为空格\n  return str.replace(/\\|/g, \"\\\\|\").replace(/[\\r\\n]+/g, \" \");\n}\n\n/**\n * Markdown 表格导出。保持 (rows, columns?) 契约，产出 GFM 表格字符串 / Blob。\n * 适合贴进 README / issue / 文档。零依赖。\n */\nexport function rowsToMarkdown(rows: ExportRow[], columns?: string[]): string {\n  const first = rows[0];\n  if (!first) return \"\";\n  const cols = columns ?? Object.keys(first);\n  const header = `| ${cols.map(escapeMdCell).join(\" | \")} |`;\n  const divider = `| ${cols.map(() => \"---\").join(\" | \")} |`;\n  const body = rows\n    .map((row) => `| ${cols.map((c) => escapeMdCell(row[c])).join(\" | \")} |`)\n    .join(\"\\n\");\n  return `${header}\\n${divider}\\n${body}`;\n}\n\nexport function toMarkdownBlob(rows: ExportRow[], columns?: string[]): Blob {\n  return new Blob([rowsToMarkdown(rows, columns)], {\n    type: \"text/markdown;charset=utf-8;\",\n  });\n}\n",
+    "deps": [],
+    "env_vars": [],
+    "tradeoffs": "零依赖，GFM 表格。适合贴进 README/issue/文档；不适合数据量大或需机器解析的场景。",
+    "barrel_snippet": {},
+    "requires_prisma_model": null
+  },
+  {
+    "ref": "tsv-export-fn",
+    "seam_id": "report.custom_export",
+    "summary": "rowsToTsv/toTsvBlob 制表符分隔导出，Excel/Sheets 粘贴友好。零依赖。",
+    "target": "src/server/export/tsv-export.ts",
+    "file_content": "type ExportRow = Record<string, string | number | boolean | null | undefined>;\n\nfunction escapeTsvCell(value: string | number | boolean | null | undefined): string {\n  const str = value === null || value === undefined ? \"\" : String(value);\n  // TSV：制表符/换行用空格替换，避免破坏列对齐\n  return str.replace(/[\\t\\r\\n]+/g, \" \");\n}\n\n/**\n * TSV（制表符分隔）导出。保持 (rows, columns?) 契约。\n * Excel/Sheets 粘贴友好，比 CSV 少引号转义问题。零依赖。\n */\nexport function rowsToTsv(rows: ExportRow[], columns?: string[]): string {\n  const first = rows[0];\n  if (!first) return \"\";\n  const cols = columns ?? Object.keys(first);\n  const header = cols.map(escapeTsvCell).join(\"\\t\");\n  const body = rows\n    .map((row) => cols.map((c) => escapeTsvCell(row[c])).join(\"\\t\"))\n    .join(\"\\n\");\n  return `${header}\\n${body}`;\n}\n\nexport function toTsvBlob(rows: ExportRow[], columns?: string[]): Blob {\n  return new Blob([rowsToTsv(rows, columns)], {\n    type: \"text/tab-separated-values;charset=utf-8;\",\n  });\n}\n",
+    "deps": [],
+    "env_vars": [],
+    "tradeoffs": "零依赖，制表符分隔。Excel/Sheets 粘贴友好、少引号转义问题；字段内含制表符会被替换为空格。",
+    "barrel_snippet": {},
+    "requires_prisma_model": null
+  },
+  {
+    "ref": "compact-data-table",
+    "seam_id": "ui.data_table",
+    "summary": "紧凑只读数据表格，小行距密集展示，适合 dashboard 卡片内。纯展示无 state。",
+    "target": "src/app/_components/data-table.tsx",
+    "file_content": "\"use client\";\n\ntype DataTableColumn = {\n  key: string;\n  header: string;\n};\n\ntype DataTableProps = {\n  columns: DataTableColumn[];\n  rows: Record<string, unknown>[];\n};\n\n/**\n * 紧凑只读数据表格。保持 {columns, rows} 契约，去掉阴影/圆角，行距更小，\n * 适合密集信息展示（dashboard 小卡片内）。零外部依赖、纯展示无 state。\n */\nexport function DataTable({ columns, rows }: DataTableProps) {\n  return (\n    <table className=\"w-full border-collapse text-left text-xs text-slate-700\">\n      <thead className=\"border-b border-slate-300 text-[10px] font-semibold uppercase tracking-wide text-slate-500\">\n        <tr>\n          {columns.map((column) => (\n            <th key={column.key} scope=\"col\" className=\"px-2 py-1.5\">\n              {column.header}\n            </th>\n          ))}\n        </tr>\n      </thead>\n      <tbody>\n        {rows.length === 0 ? (\n          <tr>\n            <td\n              colSpan={columns.length || 1}\n              className=\"px-2 py-3 text-center text-slate-400\"\n            >\n              —\n            </td>\n          </tr>\n        ) : (\n          rows.map((row, rowIndex) => (\n            <tr key={rowIndex} className=\"border-b border-slate-100\">\n              {columns.map((column) => (\n                <td key={column.key} className=\"px-2 py-1\">\n                  {String(row[column.key] ?? \"\")}\n                </td>\n              ))}\n            </tr>\n          ))\n        )}\n      </tbody>\n    </table>\n  );\n}\n",
+    "deps": [],
+    "env_vars": [],
+    "tradeoffs": "零依赖，紧凑只读（小行距、无阴影圆角）。适合 dashboard 卡片内密集展示；纯展示无交互。",
+    "barrel_snippet": {},
+    "requires_prisma_model": null
+  },
+  {
+    "ref": "filterable-data-table",
+    "seam_id": "ui.data_table",
+    "summary": "带全局文本筛选的数据表格，顶部搜索框跨列大小写不敏感匹配。零依赖。",
+    "target": "src/app/_components/data-table.tsx",
+    "file_content": "\"use client\";\n\nimport { useMemo, useState } from \"react\";\n\ntype DataTableColumn = {\n  key: string;\n  header: string;\n};\n\ntype DataTableProps = {\n  columns: DataTableColumn[];\n  rows: Record<string, unknown>[];\n};\n\n/**\n * 带全局文本筛选的数据表格。保持 {columns, rows} 契约，顶部一个搜索框，\n * 跨所有列做大小写不敏感子串匹配。零外部依赖。\n */\nexport function DataTable({ columns, rows }: DataTableProps) {\n  const [query, setQuery] = useState<string>(\"\");\n\n  const filteredRows = useMemo(() => {\n    const q = query.trim().toLowerCase();\n    if (q.length === 0) return rows;\n    return rows.filter((row) =>\n      columns.some((column) =>\n        String(row[column.key] ?? \"\")\n          .toLowerCase()\n          .includes(q),\n      ),\n    );\n  }, [rows, columns, query]);\n\n  return (\n    <div className=\"rounded-lg border border-slate-200 bg-white shadow-sm\">\n      <div className=\"border-b border-slate-200 px-4 py-3\">\n        <input\n          type=\"text\"\n          value={query}\n          onChange={(e) => setQuery(e.target.value)}\n          placeholder=\"Filter…\"\n          className=\"w-full rounded border border-slate-300 px-3 py-1.5 text-sm text-slate-700 outline-none focus:border-slate-400\"\n        />\n      </div>\n      <div className=\"overflow-x-auto\">\n        <table className=\"min-w-full divide-y divide-slate-200 text-left text-sm text-slate-700\">\n          <thead className=\"bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500\">\n            <tr>\n              {columns.map((column) => (\n                <th key={column.key} scope=\"col\" className=\"px-4 py-3\">\n                  {column.header}\n                </th>\n              ))}\n            </tr>\n          </thead>\n          <tbody className=\"divide-y divide-slate-100 bg-white\">\n            {filteredRows.length === 0 ? (\n              <tr>\n                <td\n                  colSpan={columns.length || 1}\n                  className=\"px-4 py-6 text-center text-sm text-slate-500\"\n                >\n                  No matching rows.\n                </td>\n              </tr>\n            ) : (\n              filteredRows.map((row, rowIndex) => (\n                <tr key={rowIndex} className=\"hover:bg-slate-50\">\n                  {columns.map((column) => (\n                    <td key={column.key} className=\"px-4 py-3 align-top\">\n                      {String(row[column.key] ?? \"\")}\n                    </td>\n                  ))}\n                </tr>\n              ))\n            )}\n          </tbody>\n        </table>\n      </div>\n    </div>\n  );\n}\n",
+    "deps": [],
+    "env_vars": [],
+    "tradeoffs": "零依赖，顶部全局文本筛选（跨列子串匹配）。适合带搜索的列表；仅文本包含匹配，无高级筛选条件。",
+    "barrel_snippet": {},
+    "requires_prisma_model": null
+  },
+  {
+    "ref": "paginated-data-table",
+    "seam_id": "ui.data_table",
+    "summary": "客户端分页数据表格，可选 pageSize，底部上一页/下一页控件。零依赖。",
+    "target": "src/app/_components/data-table.tsx",
+    "file_content": "\"use client\";\n\nimport { useMemo, useState } from \"react\";\n\ntype DataTableColumn = {\n  key: string;\n  header: string;\n};\n\ntype DataTableProps = {\n  columns: DataTableColumn[];\n  rows: Record<string, unknown>[];\n  pageSize?: number;\n};\n\n/**\n * 客户端分页数据表格。保持与 simple-data-table 相同的 {columns, rows} 契约，\n * 额外接受可选 pageSize（默认 10），在底部渲染上一页/下一页控件。零外部依赖。\n */\nexport function DataTable({ columns, rows, pageSize = 10 }: DataTableProps) {\n  const [page, setPage] = useState<number>(0);\n  const pageCount = Math.max(1, Math.ceil(rows.length / pageSize));\n  const safePage = Math.min(page, pageCount - 1);\n\n  const pageRows = useMemo(\n    () => rows.slice(safePage * pageSize, safePage * pageSize + pageSize),\n    [rows, safePage, pageSize],\n  );\n\n  return (\n    <div className=\"rounded-lg border border-slate-200 bg-white shadow-sm\">\n      <div className=\"overflow-x-auto\">\n        <table className=\"min-w-full divide-y divide-slate-200 text-left text-sm text-slate-700\">\n          <thead className=\"bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500\">\n            <tr>\n              {columns.map((column) => (\n                <th key={column.key} scope=\"col\" className=\"px-4 py-3\">\n                  {column.header}\n                </th>\n              ))}\n            </tr>\n          </thead>\n          <tbody className=\"divide-y divide-slate-100 bg-white\">\n            {pageRows.length === 0 ? (\n              <tr>\n                <td\n                  colSpan={columns.length || 1}\n                  className=\"px-4 py-6 text-center text-sm text-slate-500\"\n                >\n                  No data available.\n                </td>\n              </tr>\n            ) : (\n              pageRows.map((row, rowIndex) => (\n                <tr key={rowIndex} className=\"hover:bg-slate-50\">\n                  {columns.map((column) => (\n                    <td key={column.key} className=\"px-4 py-3 align-top\">\n                      {String(row[column.key] ?? \"\")}\n                    </td>\n                  ))}\n                </tr>\n              ))\n            )}\n          </tbody>\n        </table>\n      </div>\n      <div className=\"flex items-center justify-between border-t border-slate-200 px-4 py-3 text-sm text-slate-600\">\n        <span>\n          Page {safePage + 1} of {pageCount}\n        </span>\n        <div className=\"flex gap-2\">\n          <button\n            type=\"button\"\n            onClick={() => setPage(safePage - 1)}\n            disabled={safePage <= 0}\n            className=\"rounded border border-slate-300 px-3 py-1 disabled:opacity-40\"\n          >\n            Prev\n          </button>\n          <button\n            type=\"button\"\n            onClick={() => setPage(safePage + 1)}\n            disabled={safePage >= pageCount - 1}\n            className=\"rounded border border-slate-300 px-3 py-1 disabled:opacity-40\"\n          >\n            Next\n          </button>\n        </div>\n      </div>\n    </div>\n  );\n}\n",
+    "deps": [],
+    "env_vars": [],
+    "tradeoffs": "零依赖，客户端分页（可选 pageSize）。适合中等数据量分页浏览；纯客户端分页，超大数据集仍需服务端分页。",
+    "barrel_snippet": {},
+    "requires_prisma_model": null
+  },
+  {
+    "ref": "selectable-data-table",
+    "seam_id": "ui.data_table",
+    "summary": "可多选行的数据表格，左侧复选框列，支持全选/单选 + 已选计数。零依赖。",
+    "target": "src/app/_components/data-table.tsx",
+    "file_content": "\"use client\";\n\nimport { useState } from \"react\";\n\ntype DataTableColumn = {\n  key: string;\n  header: string;\n};\n\ntype DataTableProps = {\n  columns: DataTableColumn[];\n  rows: Record<string, unknown>[];\n};\n\n/**\n * 可多选行的数据表格。保持 {columns, rows} 契约，左侧加复选框列，\n * 支持全选/单选，顶部显示已选计数。零外部依赖。\n */\nexport function DataTable({ columns, rows }: DataTableProps) {\n  const [selected, setSelected] = useState<Set<number>>(new Set());\n\n  function toggleRow(index: number) {\n    setSelected((prev) => {\n      const next = new Set(prev);\n      if (next.has(index)) {\n        next.delete(index);\n      } else {\n        next.add(index);\n      }\n      return next;\n    });\n  }\n\n  function toggleAll() {\n    setSelected((prev) =>\n      prev.size === rows.length ? new Set() : new Set(rows.map((_, i) => i)),\n    );\n  }\n\n  const allChecked = rows.length > 0 && selected.size === rows.length;\n\n  return (\n    <div className=\"rounded-lg border border-slate-200 bg-white shadow-sm\">\n      <div className=\"border-b border-slate-200 px-4 py-2 text-xs text-slate-500\">\n        {selected.size} selected\n      </div>\n      <div className=\"overflow-x-auto\">\n        <table className=\"min-w-full divide-y divide-slate-200 text-left text-sm text-slate-700\">\n          <thead className=\"bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500\">\n            <tr>\n              <th scope=\"col\" className=\"px-4 py-3\">\n                <input\n                  type=\"checkbox\"\n                  checked={allChecked}\n                  onChange={toggleAll}\n                  aria-label=\"Select all rows\"\n                />\n              </th>\n              {columns.map((column) => (\n                <th key={column.key} scope=\"col\" className=\"px-4 py-3\">\n                  {column.header}\n                </th>\n              ))}\n            </tr>\n          </thead>\n          <tbody className=\"divide-y divide-slate-100 bg-white\">\n            {rows.length === 0 ? (\n              <tr>\n                <td\n                  colSpan={(columns.length || 1) + 1}\n                  className=\"px-4 py-6 text-center text-sm text-slate-500\"\n                >\n                  No data available.\n                </td>\n              </tr>\n            ) : (\n              rows.map((row, rowIndex) => (\n                <tr\n                  key={rowIndex}\n                  className={selected.has(rowIndex) ? \"bg-sky-50\" : \"hover:bg-slate-50\"}\n                >\n                  <td className=\"px-4 py-3\">\n                    <input\n                      type=\"checkbox\"\n                      checked={selected.has(rowIndex)}\n                      onChange={() => toggleRow(rowIndex)}\n                      aria-label={`Select row ${rowIndex + 1}`}\n                    />\n                  </td>\n                  {columns.map((column) => (\n                    <td key={column.key} className=\"px-4 py-3 align-top\">\n                      {String(row[column.key] ?? \"\")}\n                    </td>\n                  ))}\n                </tr>\n              ))\n            )}\n          </tbody>\n        </table>\n      </div>\n    </div>\n  );\n}\n",
+    "deps": [],
+    "env_vars": [],
+    "tradeoffs": "零依赖，多选行（复选框列 + 全选 + 已选计数）。适合批量操作场景；选择状态在组件内，需自行接批量动作。",
+    "barrel_snippet": {},
+    "requires_prisma_model": null
+  },
+  {
+    "ref": "simple-data-table",
+    "seam_id": "ui.data_table",
+    "summary": "零外部依赖的受控 React 数据表格，适合直接放入 Next.js App Router 的 src/app/_components/。",
+    "target": "src/app/_components/data-table.tsx",
+    "file_content": "\"use client\";\n\ntype DataTableColumn = {\n  key: string;\n  header: string;\n};\n\ntype DataTableProps = {\n  columns: DataTableColumn[];\n  rows: Record<string, unknown>[];\n};\n\nexport function DataTable({ columns, rows }: DataTableProps) {\n  return (\n    <div className=\"overflow-x-auto rounded-lg border border-slate-200 bg-white shadow-sm\">\n      <table className=\"min-w-full divide-y divide-slate-200 text-left text-sm text-slate-700\">\n        <thead className=\"bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500\">\n          <tr>\n            {columns.map((column) => (\n              <th key={column.key} scope=\"col\" className=\"px-4 py-3\">\n                {column.header}\n              </th>\n            ))}\n          </tr>\n        </thead>\n        <tbody className=\"divide-y divide-slate-100 bg-white\">\n          {rows.length === 0 ? (\n            <tr>\n              <td\n                colSpan={columns.length || 1}\n                className=\"px-4 py-6 text-center text-sm text-slate-500\"\n              >\n                No data available.\n              </td>\n            </tr>\n          ) : (\n            rows.map((row, rowIndex) => (\n              <tr key={rowIndex} className=\"hover:bg-slate-50\">\n                {columns.map((column) => (\n                  <td key={column.key} className=\"px-4 py-3 align-top\">\n                    {String(row[column.key] ?? \"\")}\n                  </td>\n                ))}\n              </tr>\n            ))\n          )}\n        </tbody>\n      </table>\n    </div>\n  );\n}\n",
+    "deps": [],
+    "env_vars": [],
+    "tradeoffs": "零外部依赖，原生 table。功能基础（无排序/分页/筛选）。适合快速展示小数据量，不适合大数据或需交互的场景。",
+    "barrel_snippet": {},
+    "requires_prisma_model": null
+  },
+  {
+    "ref": "sortable-data-table",
+    "seam_id": "ui.data_table",
+    "summary": "可排序数据表格，点击表头在 asc/desc/无序间循环，零依赖（不引 tanstack）。",
+    "target": "src/app/_components/data-table.tsx",
+    "file_content": "\"use client\";\n\nimport { useMemo, useState } from \"react\";\n\ntype DataTableColumn = {\n  key: string;\n  header: string;\n};\n\ntype DataTableProps = {\n  columns: DataTableColumn[];\n  rows: Record<string, unknown>[];\n};\n\ntype SortDir = \"asc\" | \"desc\";\n\n/**\n * 可排序数据表格。保持 {columns, rows} 契约，点击表头在 asc/desc/无序间循环。\n * 用 String() 比较，对混合类型安全。零外部依赖（不引 tanstack）。\n */\nexport function DataTable({ columns, rows }: DataTableProps) {\n  const [sortKey, setSortKey] = useState<string | null>(null);\n  const [sortDir, setSortDir] = useState<SortDir>(\"asc\");\n\n  const sortedRows = useMemo(() => {\n    if (sortKey === null) return rows;\n    const copy = [...rows];\n    copy.sort((a, b) => {\n      const av = String(a[sortKey] ?? \"\");\n      const bv = String(b[sortKey] ?? \"\");\n      const cmp = av.localeCompare(bv, undefined, { numeric: true });\n      return sortDir === \"asc\" ? cmp : -cmp;\n    });\n    return copy;\n  }, [rows, sortKey, sortDir]);\n\n  function toggleSort(key: string) {\n    if (sortKey !== key) {\n      setSortKey(key);\n      setSortDir(\"asc\");\n    } else if (sortDir === \"asc\") {\n      setSortDir(\"desc\");\n    } else {\n      setSortKey(null);\n    }\n  }\n\n  return (\n    <div className=\"overflow-x-auto rounded-lg border border-slate-200 bg-white shadow-sm\">\n      <table className=\"min-w-full divide-y divide-slate-200 text-left text-sm text-slate-700\">\n        <thead className=\"bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500\">\n          <tr>\n            {columns.map((column) => {\n              const active = sortKey === column.key;\n              const arrow = active ? (sortDir === \"asc\" ? \" ▲\" : \" ▼\") : \"\";\n              return (\n                <th key={column.key} scope=\"col\" className=\"px-4 py-3\">\n                  <button\n                    type=\"button\"\n                    onClick={() => toggleSort(column.key)}\n                    className=\"font-semibold uppercase tracking-wide hover:text-slate-800\"\n                  >\n                    {column.header}\n                    {arrow}\n                  </button>\n                </th>\n              );\n            })}\n          </tr>\n        </thead>\n        <tbody className=\"divide-y divide-slate-100 bg-white\">\n          {sortedRows.length === 0 ? (\n            <tr>\n              <td\n                colSpan={columns.length || 1}\n                className=\"px-4 py-6 text-center text-sm text-slate-500\"\n              >\n                No data available.\n              </td>\n            </tr>\n          ) : (\n            sortedRows.map((row, rowIndex) => (\n              <tr key={rowIndex} className=\"hover:bg-slate-50\">\n                {columns.map((column) => (\n                  <td key={column.key} className=\"px-4 py-3 align-top\">\n                    {String(row[column.key] ?? \"\")}\n                  </td>\n                ))}\n              </tr>\n            ))\n          )}\n        </tbody>\n      </table>\n    </div>\n  );\n}\n",
+    "deps": [],
+    "env_vars": [],
+    "tradeoffs": "零依赖，点击表头排序（localeCompare 数字感知）。适合需排序但不想引 tanstack 的场景；排序在客户端，大数据量有性能上限。",
+    "barrel_snippet": {},
+    "requires_prisma_model": null
+  },
+  {
+    "ref": "striped-numeric-data-table",
+    "seam_id": "ui.data_table",
+    "summary": "斑马纹数据表格，数字列自动右对齐，适合财务/报表只读展示。零依赖。",
+    "target": "src/app/_components/data-table.tsx",
+    "file_content": "\"use client\";\n\ntype DataTableColumn = {\n  key: string;\n  header: string;\n};\n\ntype DataTableProps = {\n  columns: DataTableColumn[];\n  rows: Record<string, unknown>[];\n};\n\n/** 判断一个单元格值是否为数字（用于右对齐）。 */\nfunction isNumeric(value: unknown): boolean {\n  if (typeof value === \"number\") return true;\n  if (typeof value === \"string\" && value.trim() !== \"\") {\n    return !Number.isNaN(Number(value));\n  }\n  return false;\n}\n\n/**\n * 斑马纹数据表格，数字列自动右对齐。保持 {columns, rows} 契约。\n * 隔行底色 + 数字右对齐，适合财务/报表类只读展示。零外部依赖。\n */\nexport function DataTable({ columns, rows }: DataTableProps) {\n  return (\n    <div className=\"overflow-x-auto rounded-lg border border-slate-200 bg-white shadow-sm\">\n      <table className=\"min-w-full text-left text-sm text-slate-700\">\n        <thead className=\"bg-slate-100 text-xs font-semibold uppercase tracking-wide text-slate-500\">\n          <tr>\n            {columns.map((column) => (\n              <th key={column.key} scope=\"col\" className=\"px-4 py-3\">\n                {column.header}\n              </th>\n            ))}\n          </tr>\n        </thead>\n        <tbody>\n          {rows.length === 0 ? (\n            <tr>\n              <td\n                colSpan={columns.length || 1}\n                className=\"px-4 py-6 text-center text-sm text-slate-500\"\n              >\n                No data available.\n              </td>\n            </tr>\n          ) : (\n            rows.map((row, rowIndex) => (\n              <tr key={rowIndex} className={rowIndex % 2 === 0 ? \"bg-white\" : \"bg-slate-50\"}>\n                {columns.map((column) => {\n                  const value = row[column.key];\n                  return (\n                    <td\n                      key={column.key}\n                      className={\n                        isNumeric(value)\n                          ? \"px-4 py-2.5 text-right tabular-nums\"\n                          : \"px-4 py-2.5\"\n                      }\n                    >\n                      {String(value ?? \"\")}\n                    </td>\n                  );\n                })}\n              </tr>\n            ))\n          )}\n        </tbody>\n      </table>\n    </div>\n  );\n}\n",
+    "deps": [],
+    "env_vars": [],
+    "tradeoffs": "零依赖，斑马纹 + 数字列自动右对齐。适合财务/报表只读展示；按值类型判断对齐，纯展示无交互。",
+    "barrel_snippet": {},
+    "requires_prisma_model": null
+  },
+  {
+    "ref": "tanstack-data-table",
+    "seam_id": "ui.data_table",
+    "summary": "基于 @tanstack/react-table 的受控 React 数据表格，支持列排序，但需要额外安装 npm 依赖。",
+    "target": "src/app/_components/data-table.tsx",
+    "file_content": "\"use client\";\n\nimport {\n  flexRender,\n  getCoreRowModel,\n  getSortedRowModel,\n  useReactTable,\n  type ColumnDef,\n  type SortingState,\n} from \"@tanstack/react-table\";\nimport { useState } from \"react\";\n\ntype DataTableColumn = {\n  key: string;\n  header: string;\n};\n\ntype DataTableProps = {\n  columns: DataTableColumn[];\n  rows: Record<string, unknown>[];\n};\n\nexport function DataTable({ columns, rows }: DataTableProps) {\n  const [sorting, setSorting] = useState<SortingState>([]);\n\n  const columnDefs: ColumnDef<Record<string, unknown>>[] = columns.map((column) => ({\n    accessorKey: column.key,\n    header: ({ column: tableColumn }) => (\n      <button\n        type=\"button\"\n        onClick={tableColumn.getToggleSortingHandler()}\n        className=\"flex items-center gap-2 font-semibold uppercase tracking-wide text-slate-500\"\n      >\n        <span>{column.header}</span>\n        <span className=\"text-xs text-slate-400\">\n          {tableColumn.getIsSorted() === \"asc\"\n            ? \"▲\"\n            : tableColumn.getIsSorted() === \"desc\"\n              ? \"▼\"\n              : \"↕\"}\n        </span>\n      </button>\n    ),\n    cell: ({ getValue }) => String(getValue() ?? \"\"),\n  }));\n\n  const table = useReactTable({\n    data: rows,\n    columns: columnDefs,\n    state: { sorting },\n    onSortingChange: setSorting,\n    getCoreRowModel: getCoreRowModel(),\n    getSortedRowModel: getSortedRowModel(),\n  });\n\n  return (\n    <div className=\"overflow-x-auto rounded-lg border border-slate-200 bg-white shadow-sm\">\n      <table className=\"min-w-full divide-y divide-slate-200 text-left text-sm text-slate-700\">\n        <thead className=\"bg-slate-50 text-xs text-slate-500\">\n          {table.getHeaderGroups().map((headerGroup) => (\n            <tr key={headerGroup.id}>\n              {headerGroup.headers.map((header) => (\n                <th key={header.id} scope=\"col\" className=\"px-4 py-3\">\n                  {header.isPlaceholder\n                    ? null\n                    : flexRender(header.column.columnDef.header, header.getContext())}\n                </th>\n              ))}\n            </tr>\n          ))}\n        </thead>\n        <tbody className=\"divide-y divide-slate-100 bg-white\">\n          {table.getRowModel().rows.length === 0 ? (\n            <tr>\n              <td\n                colSpan={columns.length || 1}\n                className=\"px-4 py-6 text-center text-sm text-slate-500\"\n              >\n                No data available.\n              </td>\n            </tr>\n          ) : (\n            table.getRowModel().rows.map((row) => (\n              <tr key={row.id} className=\"hover:bg-slate-50\">\n                {row.getVisibleCells().map((cell) => (\n                  <td key={cell.id} className=\"px-4 py-3 align-top\">\n                    {flexRender(cell.column.columnDef.cell, cell.getContext())}\n                  </td>\n                ))}\n              </tr>\n            ))\n          )}\n        </tbody>\n      </table>\n    </div>\n  );\n}\n",
+    "deps": [
+      "@tanstack/react-table@^8.20.0"
+    ],
+    "env_vars": [],
+    "tradeoffs": "依赖 @tanstack/react-table（需装包），支持排序等高级能力。适合复杂交互表格，代价是引入运行时依赖与学习成本。",
+    "barrel_snippet": {},
+    "requires_prisma_model": null
+  },
+  {
+    "ref": "card-detail",
+    "seam_id": "ui.detail",
+    "summary": "卡片式详情，带标题的网格卡片展示字段。零依赖，适合单条资源展示。",
+    "target": "src/app/_components/detail-view.tsx",
+    "file_content": "\"use client\";\n\ntype DetailField = {\n  key: string;\n  label: string;\n};\n\ntype DetailViewProps = {\n  data: Record<string, unknown>;\n  fields?: DetailField[];\n  title?: string;\n};\n\n/**\n * 卡片式详情：带标题的卡片，字段以 label/value 堆叠展示。保持 {data, fields, title} 契约。\n * 零外部依赖。适合单条资源的展示卡片。\n */\nexport function DetailView({ data, fields, title }: DetailViewProps) {\n  const rows: DetailField[] =\n    fields ?? Object.keys(data).map((k) => ({ key: k, label: k }));\n\n  return (\n    <div className=\"rounded-lg border border-slate-200 bg-white p-6 shadow-sm\">\n      {title ? <h2 className=\"mb-4 text-lg font-semibold text-slate-800\">{title}</h2> : null}\n      <div className=\"grid gap-4 sm:grid-cols-2\">\n        {rows.map((field) => (\n          <div key={field.key} className=\"flex flex-col gap-1\">\n            <span className=\"text-xs font-medium uppercase tracking-wide text-slate-400\">\n              {field.label}\n            </span>\n            <span className=\"text-sm text-slate-800\">{String(data[field.key] ?? \"\")}</span>\n          </div>\n        ))}\n      </div>\n    </div>\n  );\n}\n",
+    "deps": [],
+    "env_vars": [],
+    "tradeoffs": "卡片式详情，带标题网格布局。视觉更突出、适合单条资源；字段极多时网格会很长。",
+    "barrel_snippet": {},
+    "requires_prisma_model": null
+  },
+  {
+    "ref": "field-list-detail",
+    "seam_id": "ui.detail",
+    "summary": "字段列表式详情（dl/dt/dd 定义列表）。零依赖，fields 省略则展示所有键。",
+    "target": "src/app/_components/detail-view.tsx",
+    "file_content": "\"use client\";\n\ntype DetailField = {\n  key: string;\n  label: string;\n};\n\ntype DetailViewProps = {\n  data: Record<string, unknown>;\n  fields?: DetailField[];\n};\n\n/**\n * 字段列表式详情：定义列表（dl/dt/dd）逐字段展示。保持 {data, fields} 契约。\n * fields 省略时展示 data 的所有键。零外部依赖。\n */\nexport function DetailView({ data, fields }: DetailViewProps) {\n  const rows: DetailField[] =\n    fields ?? Object.keys(data).map((k) => ({ key: k, label: k }));\n\n  return (\n    <dl className=\"divide-y divide-slate-100 rounded-lg border border-slate-200 bg-white\">\n      {rows.map((field) => (\n        <div key={field.key} className=\"flex px-4 py-3 text-sm\">\n          <dt className=\"w-40 shrink-0 font-medium text-slate-500\">{field.label}</dt>\n          <dd className=\"text-slate-800\">{String(data[field.key] ?? \"\")}</dd>\n        </div>\n      ))}\n    </dl>\n  );\n}\n",
+    "deps": [],
+    "env_vars": [],
+    "tradeoffs": "字段列表式（dl/dt/dd）详情。紧凑、适合多字段；纯展示无操作按钮。",
+    "barrel_snippet": {},
+    "requires_prisma_model": null
+  },
+  {
+    "ref": "simple-form",
+    "seam_id": "ui.form",
+    "summary": "基础受控表单，每字段一个 text input，提交回调 Record。零依赖，配 CRUD create/update。",
+    "target": "src/app/_components/form-view.tsx",
+    "file_content": "\"use client\";\n\nimport { useState } from \"react\";\n\ntype FormField = {\n  name: string;\n  label: string;\n};\n\ntype FormViewProps = {\n  fields: FormField[];\n  onSubmit: (data: Record<string, string>) => void;\n  submitLabel?: string;\n};\n\n/**\n * 基础受控表单。每个 field 渲染一个 text input，提交时回调收集到的 Record。\n * 零外部依赖（不引 react-hook-form）。配合 data.crud_resource 的 create/update。\n */\nexport function FormView({ fields, onSubmit, submitLabel = \"提交\" }: FormViewProps) {\n  const [values, setValues] = useState<Record<string, string>>({});\n\n  function setField(name: string, value: string) {\n    setValues((prev) => ({ ...prev, [name]: value }));\n  }\n\n  function handleSubmit(e: React.FormEvent) {\n    e.preventDefault();\n    onSubmit(values);\n  }\n\n  return (\n    <form onSubmit={handleSubmit} className=\"flex flex-col gap-4\">\n      {fields.map((field) => (\n        <label key={field.name} className=\"flex flex-col gap-1 text-sm\">\n          <span className=\"font-medium text-slate-700\">{field.label}</span>\n          <input\n            type=\"text\"\n            value={values[field.name] ?? \"\"}\n            onChange={(e) => setField(field.name, e.target.value)}\n            className=\"rounded border border-slate-300 px-3 py-2 outline-none focus:border-slate-400\"\n          />\n        </label>\n      ))}\n      <button\n        type=\"submit\"\n        className=\"rounded bg-slate-800 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700\"\n      >\n        {submitLabel}\n      </button>\n    </form>\n  );\n}\n",
+    "deps": [],
+    "env_vars": [],
+    "tradeoffs": "基础受控表单，纯 text 输入。最简单，适合快速录入；无校验、无字段类型，复杂表单不够用。",
+    "barrel_snippet": {},
+    "requires_prisma_model": null
+  },
+  {
+    "ref": "typed-form",
+    "seam_id": "ui.form",
+    "summary": "多字段类型表单（text/textarea/select）。零依赖，适合字段多样的实体编辑。",
+    "target": "src/app/_components/form-view.tsx",
+    "file_content": "\"use client\";\n\nimport { useState } from \"react\";\n\ntype FormField = {\n  name: string;\n  label: string;\n  type?: \"text\" | \"textarea\" | \"select\";\n  options?: string[];\n};\n\ntype FormViewProps = {\n  fields: FormField[];\n  onSubmit: (data: Record<string, string>) => void;\n  submitLabel?: string;\n};\n\n/**\n * 多字段类型表单：支持 text / textarea / select。保持 {fields, onSubmit} 契约。\n * 零外部依赖。适合字段类型多样的实体编辑（如带描述、状态下拉的资源）。\n */\nexport function FormView({ fields, onSubmit, submitLabel = \"提交\" }: FormViewProps) {\n  const [values, setValues] = useState<Record<string, string>>({});\n\n  function setField(name: string, value: string) {\n    setValues((prev) => ({ ...prev, [name]: value }));\n  }\n\n  function handleSubmit(e: React.FormEvent) {\n    e.preventDefault();\n    onSubmit(values);\n  }\n\n  return (\n    <form onSubmit={handleSubmit} className=\"flex flex-col gap-4\">\n      {fields.map((field) => {\n        const value = values[field.name] ?? \"\";\n        const cls = \"rounded border border-slate-300 px-3 py-2 outline-none focus:border-slate-400\";\n        return (\n          <label key={field.name} className=\"flex flex-col gap-1 text-sm\">\n            <span className=\"font-medium text-slate-700\">{field.label}</span>\n            {field.type === \"textarea\" ? (\n              <textarea\n                value={value}\n                onChange={(e) => setField(field.name, e.target.value)}\n                className={cls}\n                rows={4}\n              />\n            ) : field.type === \"select\" ? (\n              <select\n                value={value}\n                onChange={(e) => setField(field.name, e.target.value)}\n                className={cls}\n              >\n                <option value=\"\">请选择…</option>\n                {(field.options ?? []).map((opt) => (\n                  <option key={opt} value={opt}>\n                    {opt}\n                  </option>\n                ))}\n              </select>\n            ) : (\n              <input\n                type=\"text\"\n                value={value}\n                onChange={(e) => setField(field.name, e.target.value)}\n                className={cls}\n              />\n            )}\n          </label>\n        );\n      })}\n      <button\n        type=\"submit\"\n        className=\"rounded bg-slate-800 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700\"\n      >\n        {submitLabel}\n      </button>\n    </form>\n  );\n}\n",
+    "deps": [],
+    "env_vars": [],
+    "tradeoffs": "多字段类型（text/textarea/select）。适合字段多样的实体编辑；类型有限，无日期/文件等高级控件。",
+    "barrel_snippet": {},
+    "requires_prisma_model": null
+  },
+  {
+    "ref": "validated-form",
+    "seam_id": "ui.form",
+    "summary": "带必填校验的受控表单，required 字段为空阻止提交并显错。零依赖。",
+    "target": "src/app/_components/form-view.tsx",
+    "file_content": "\"use client\";\n\nimport { useState } from \"react\";\n\ntype FormField = {\n  name: string;\n  label: string;\n  required?: boolean;\n};\n\ntype FormViewProps = {\n  fields: FormField[];\n  onSubmit: (data: Record<string, string>) => void;\n  submitLabel?: string;\n};\n\n/**\n * 带必填校验的受控表单。field.required 的字段为空时阻止提交并显示错误。\n * 零外部依赖。适合需要基础校验的创建/编辑场景。\n */\nexport function FormView({ fields, onSubmit, submitLabel = \"提交\" }: FormViewProps) {\n  const [values, setValues] = useState<Record<string, string>>({});\n  const [errors, setErrors] = useState<Record<string, string>>({});\n\n  function setField(name: string, value: string) {\n    setValues((prev) => ({ ...prev, [name]: value }));\n  }\n\n  function handleSubmit(e: React.FormEvent) {\n    e.preventDefault();\n    const next: Record<string, string> = {};\n    for (const field of fields) {\n      if (field.required && !(values[field.name] ?? \"\").trim()) {\n        next[field.name] = `${field.label}不能为空`;\n      }\n    }\n    setErrors(next);\n    if (Object.keys(next).length === 0) {\n      onSubmit(values);\n    }\n  }\n\n  return (\n    <form onSubmit={handleSubmit} className=\"flex flex-col gap-4\">\n      {fields.map((field) => (\n        <label key={field.name} className=\"flex flex-col gap-1 text-sm\">\n          <span className=\"font-medium text-slate-700\">\n            {field.label}\n            {field.required ? <span className=\"text-red-500\"> *</span> : null}\n          </span>\n          <input\n            type=\"text\"\n            value={values[field.name] ?? \"\"}\n            onChange={(e) => setField(field.name, e.target.value)}\n            className=\"rounded border border-slate-300 px-3 py-2 outline-none focus:border-slate-400\"\n          />\n          {errors[field.name] ? (\n            <span className=\"text-xs text-red-500\">{errors[field.name]}</span>\n          ) : null}\n        </label>\n      ))}\n      <button\n        type=\"submit\"\n        className=\"rounded bg-slate-800 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700\"\n      >\n        {submitLabel}\n      </button>\n    </form>\n  );\n}\n",
+    "deps": [],
+    "env_vars": [],
+    "tradeoffs": "带必填校验的表单，空必填字段阻止提交。适合需基础校验的创建/编辑；仅必填校验，无格式/异步校验。",
+    "barrel_snippet": {},
+    "requires_prisma_model": null
+  },
+  {
+    "ref": "sidebar-layout",
+    "seam_id": "ui.layout",
+    "summary": "侧边栏应用布局，左侧固定导航+右侧内容区。零依赖，适合后台管理骨架。",
+    "target": "src/app/_components/app-layout.tsx",
+    "file_content": "\"use client\";\n\ntype NavItem = {\n  label: string;\n  href: string;\n};\n\ntype AppLayoutProps = {\n  children: React.ReactNode;\n  title?: string;\n  nav?: NavItem[];\n};\n\n/**\n * 侧边栏应用布局：左侧固定导航 + 右侧内容区。保持 {children, title, nav} 契约。\n * 零外部依赖。适合后台管理类应用骨架。\n */\nexport function AppLayout({ children, title = \"应用\", nav = [] }: AppLayoutProps) {\n  return (\n    <div className=\"flex min-h-screen bg-slate-50\">\n      <aside className=\"w-56 shrink-0 border-r border-slate-200 bg-white p-4\">\n        <div className=\"mb-6 text-lg font-bold text-slate-800\">{title}</div>\n        <nav className=\"flex flex-col gap-1\">\n          {nav.map((item) => (\n            <a\n              key={item.href}\n              href={item.href}\n              className=\"rounded px-3 py-2 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900\"\n            >\n              {item.label}\n            </a>\n          ))}\n        </nav>\n      </aside>\n      <main className=\"flex-1 p-6\">{children}</main>\n    </div>\n  );\n}\n",
+    "deps": [],
+    "env_vars": [],
+    "tradeoffs": "侧边栏布局，左导航+右内容。适合后台管理（多入口）；窄屏需自行处理折叠。",
+    "barrel_snippet": {},
+    "requires_prisma_model": null
+  },
+  {
+    "ref": "topbar-layout",
+    "seam_id": "ui.layout",
+    "summary": "顶栏应用布局，顶部水平导航+居中内容区。零依赖，适合内容站/简单应用。",
+    "target": "src/app/_components/app-layout.tsx",
+    "file_content": "\"use client\";\n\ntype NavItem = {\n  label: string;\n  href: string;\n};\n\ntype AppLayoutProps = {\n  children: React.ReactNode;\n  title?: string;\n  nav?: NavItem[];\n};\n\n/**\n * 顶栏应用布局：顶部水平导航 + 下方居中内容区。保持 {children, title, nav} 契约。\n * 零外部依赖。适合内容站/营销页/简单应用骨架。\n */\nexport function AppLayout({ children, title = \"应用\", nav = [] }: AppLayoutProps) {\n  return (\n    <div className=\"min-h-screen bg-slate-50\">\n      <header className=\"border-b border-slate-200 bg-white\">\n        <div className=\"mx-auto flex max-w-5xl items-center justify-between px-6 py-3\">\n          <div className=\"text-lg font-bold text-slate-800\">{title}</div>\n          <nav className=\"flex gap-4\">\n            {nav.map((item) => (\n              <a\n                key={item.href}\n                href={item.href}\n                className=\"text-sm text-slate-600 hover:text-slate-900\"\n              >\n                {item.label}\n              </a>\n            ))}\n          </nav>\n        </div>\n      </header>\n      <main className=\"mx-auto max-w-5xl px-6 py-8\">{children}</main>\n    </div>\n  );\n}\n",
+    "deps": [],
+    "env_vars": [],
+    "tradeoffs": "顶栏布局，水平导航+居中内容。适合内容站/营销页/少入口应用；入口多会挤。",
+    "barrel_snippet": {},
+    "requires_prisma_model": null
+  }
+]
