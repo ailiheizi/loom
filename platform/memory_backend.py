@@ -23,13 +23,14 @@ from typing import Optional
 logger = logging.getLogger(__name__)
 
 # memory-engine 的路径（相对于 Loom 项目根）
-MEMORY_ENGINE_PATH = Path(__file__).resolve().parent.parent.parent / "research" / "memory" / "memory-engine"
-
-# 确保 memory-engine 可 import
-if str(MEMORY_ENGINE_PATH) not in sys.path:
-    sys.path.insert(0, str(MEMORY_ENGINE_PATH))
-
-from memory_engine.fact_store import FactStore
+# FactStore: 优先用 vendored 副本(打包进 loom-mcp),回退 research 仓库(开发时)
+try:
+    from loom_vendor.fact_store import FactStore
+except ImportError:
+    MEMORY_ENGINE_PATH = Path(__file__).resolve().parent.parent.parent / "research" / "memory" / "memory-engine"
+    if str(MEMORY_ENGINE_PATH) not in sys.path:
+        sys.path.insert(0, str(MEMORY_ENGINE_PATH))
+    from memory_engine.fact_store import FactStore
 
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_STORE_DIR = str(ROOT / ".work" / "loom-memory")
@@ -41,14 +42,20 @@ def _patch_factstore_with_fastembed(store: FactStore) -> None:
     这样 memory-engine 的信任+矛盾检测+持久化逻辑全复用,只把 embedding 换成本地的。
     """
     import numpy as np
-    try:
-        from fastembed import TextEmbedding
-        model = TextEmbedding("BAAI/bge-small-en-v1.5")
-    except Exception:
-        # fastembed 不可用(网络问题等)→ 用 StubEmbedder 兜底
+    import os
+    # 尊重 LOOM_EMBED_PROVIDER：stub 模式直接用词袋(零加载),不碰 fastembed(它要加载 ONNX 模型,慢)
+    use_stub = os.environ.get("LOOM_EMBED_PROVIDER", "").lower() == "stub"
+    model = None
+    if not use_stub:
+        try:
+            from fastembed import TextEmbedding
+            model = TextEmbedding("BAAI/bge-small-en-v1.5")
+        except Exception:
+            model = None
+    if model is None:
+        # StubEmbedder 兜底(stub 模式 或 fastembed 不可用)
         from embedding import get_embedder
         embedder = get_embedder()
-        # 模拟 fastembed 的 encode 接口
         class _Stub:
             def encode(self, texts, normalize_embeddings=True):
                 return [embedder.embed_one(t) for t in texts]
@@ -209,26 +216,39 @@ class MemoryBackend:
         if self.count > 0:
             return 0  # 已有数据，不重复 bootstrap
         if seed_path is None:
-            seed_path = Path(__file__).resolve().parent / "loom_seed" / "seed_data.json"
+            try:
+                from _paths import seed_data_path
+                seed_path = seed_data_path()
+            except ImportError:
+                seed_path = Path(__file__).resolve().parent / "loom_seed" / "seed_data.json"
         if not seed_path.exists():
             logger.warning(f"seed 数据不存在: {seed_path}")
             return 0
         seeds = json.loads(seed_path.read_text(encoding="utf-8"))
+
+        # 批量优化：禁用逐次 _rebuild_index(否则 39 次全量重建 = O(n²)，~43s)，
+        # 加完所有候选后只重建一次。
+        real_rebuild = self.store._rebuild_index
+        self.store._rebuild_index = lambda: None
         n = 0
-        for s in seeds:
-            self.ingest(
-                src_content=s["file_content"],
-                seam_id=s["seam_id"],
-                ref=s["ref"],
-                summary=s["summary"],
-                target=s["target"],
-                deps=s.get("deps"),
-                env_vars=s.get("env_vars"),
-                tradeoffs=s.get("tradeoffs", ""),
-                barrel_snippet=s.get("barrel_snippet"),
-                requires_prisma_model=s.get("requires_prisma_model"),
-            )
-            n += 1
+        try:
+            for s in seeds:
+                self.ingest(
+                    src_content=s["file_content"],
+                    seam_id=s["seam_id"],
+                    ref=s["ref"],
+                    summary=s["summary"],
+                    target=s["target"],
+                    deps=s.get("deps"),
+                    env_vars=s.get("env_vars"),
+                    tradeoffs=s.get("tradeoffs", ""),
+                    barrel_snippet=s.get("barrel_snippet"),
+                    requires_prisma_model=s.get("requires_prisma_model"),
+                )
+                n += 1
+        finally:
+            self.store._rebuild_index = real_rebuild
+        self.store._rebuild_index()  # 一次性建索引
         logger.info(f"bootstrap: 从 seed 导入 {n} 个候选到 {self.store.store_dir}")
         return n
 

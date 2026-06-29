@@ -17,10 +17,11 @@ import re
 from pathlib import Path
 
 import loom_contracts as c
+from _paths import core_json_path, base_dir
 from load_candidates import load_candidates, find_candidate
 
 ROOT = Path(__file__).resolve().parent.parent
-BASE = ROOT / "core" / "t3-base"
+BASE = base_dir()
 CANDIDATES = ROOT / "candidates"
 
 PRISMA_ANCHOR = "// <loom-anchor:prisma-models>"
@@ -153,7 +154,7 @@ def _build_dashboard_page(selected: set[str], crud_ref: str | None) -> str | Non
 def get_files(plan: c.AssemblyPlan) -> dict:
     """把 AssemblyPlan 物化成文件清单（纯数据，不跑 Node）。"""
     by_seam = load_candidates(CANDIDATES)
-    core = json.loads((ROOT / "core" / "loom.core.json").read_text(encoding="utf-8"))
+    core = json.loads(core_json_path().read_text(encoding="utf-8"))
     seam_specs = {s["seam_id"]: s for s in core["seams"]}
 
     files = _read_base_files()
@@ -289,7 +290,7 @@ def get_files_via_backend(plan: c.AssemblyPlan, backend) -> dict:
       {ref, seam_id, target, file_content, deps, env_vars, tradeoffs,
        barrel_snippet, requires_prisma_model}
     """
-    core = json.loads((ROOT / "core" / "loom.core.json").read_text(encoding="utf-8"))
+    core = json.loads(core_json_path().read_text(encoding="utf-8"))
     seam_specs = {s["seam_id"]: s for s in core["seams"]}
 
     files = _read_base_files()

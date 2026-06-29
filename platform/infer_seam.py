@@ -17,7 +17,8 @@ from pathlib import Path
 from embedding import EmbeddingProvider, get_embedder
 
 ROOT = Path(__file__).resolve().parent.parent
-CORE_PATH = ROOT / "core" / "loom.core.json"
+from _paths import core_json_path
+CORE_PATH = core_json_path()
 
 # 缓存 seam 向量（进程级，只算一次）
 _SEAM_INDEX: list[tuple[str, str, list[float]]] | None = None

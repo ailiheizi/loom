@@ -35,7 +35,16 @@ def plan_from_choices(idea_path: Path, choices: list[dict]) -> c.AssemblyPlan:
     """
     idea = json.loads(idea_path.read_text(encoding="utf-8"))
     idea_id = idea["idea_id"]
-    by_seam = load_candidates(ROOT / "candidates")
+    # 候选校验源：memory 模式用 ~/.loom backend，否则用仓库 candidates
+    import os
+    _use_backend = os.environ.get("LOOM_BACKEND", "memory") == "memory"
+    if _use_backend:
+        from memory_backend import get_backend
+        _backend = get_backend()
+        by_seam = None
+    else:
+        by_seam = load_candidates(ROOT / "candidates")
+        _backend = None
 
     # idea 声明的 seam 集合，用于校验 choices 覆盖
     idea_seams = {ci["seam_id"] for ci in idea["capability_intents"]}
@@ -56,10 +65,15 @@ def plan_from_choices(idea_path: Path, choices: list[dict]) -> c.AssemblyPlan:
             if not ref:
                 raise ValueError(f"seam {seam_id} 的 {action_str} 必须给 ref")
             # 校验候选真实存在
-            cand = find_candidate(by_seam, seam_id, ref)
-            if cand is None:
-                avail = [c2.ref for c2 in by_seam.get(seam_id, [])]
-                raise ValueError(f"seam {seam_id} 无候选 ref={ref}；可选：{avail}")
+            if _use_backend:
+                if _backend.get_candidate(ref) is None:
+                    avail = [c2["ref"] for c2 in _backend.list_candidates(seam_id)]
+                    raise ValueError(f"seam {seam_id} 无候选 ref={ref}；可选：{avail}")
+            else:
+                cand = find_candidate(by_seam, seam_id, ref)
+                if cand is None:
+                    avail = [c2.ref for c2 in by_seam.get(seam_id, [])]
+                    raise ValueError(f"seam {seam_id} 无候选 ref={ref}；可选：{avail}")
 
         decisions.append(
             c.SelectionDecision(

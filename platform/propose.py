@@ -13,7 +13,8 @@ if hasattr(sys.stdout, "reconfigure"):
 
 ROOT = Path(__file__).resolve().parent.parent
 CANDIDATES_ROOT = ROOT / "candidates"
-CORE_PATH = ROOT / "core" / "loom.core.json"
+from _paths import core_json_path
+CORE_PATH = core_json_path()
 WORK_DIR = ROOT / ".work"
 
 
