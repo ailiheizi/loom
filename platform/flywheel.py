@@ -1,5 +1,11 @@
 """飞轮回流（loom.flywheel）—— M5：合成/上传产物回流入池 + 健康度闭环 + 信任层。
 
+⚠️ 信任实现归属（避免与 memory backend 混淆）：
+  本模块的 trust_score 只服务 **repo backend**（LOOM_BACKEND=repo，开发/benchmark 路径）。
+  **memory backend（默认/生产，uvx 用户走这条）的信任用 memory-engine 的 MemoryWorth**
+  （Beta-Bernoulli worth=(s+1)/(s+f+2)，见 memory_backend.py）。
+  改信任逻辑时认准路径：生产改 MemoryWorth，别只改这里。
+
 docs 步骤8：generate 产物过 Gate-1 后打包成 registry item 入 pending/，过同一 ingest 管线，
 provenance=synthesized 低初始健康度入池；被复用→健康度升→转优先 pick。用户上传 provenance=user 更高信任。
 

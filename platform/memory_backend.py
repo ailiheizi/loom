@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import sys
 import json
+import os
 import logging
 from pathlib import Path
 from typing import Optional
@@ -34,6 +35,13 @@ except ImportError:
 
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_STORE_DIR = str(ROOT / ".work" / "loom-memory")
+
+# 检索排序里信任(worth)的权重。越大→飞轮越能让常用候选翻盘，但也越可能压过语义。
+# 可用 LOOM_W_TRUST 调（默认 0.4）。
+# 取 0.4 依据：eval_wtrust.py 扫描显示 0.2 时飞轮无力(语义分差~0.22 压过信任，靠后候选
+# reinforce 8 次仍 #8→#8)，0.5 起能翻盘(#8→#2)，1.0 一翻就霸榜。0.4 折中：够翻盘不霸榜。
+# 注：该值基于 StubEmbedder 词袋的分差，上 fastembed 后应重扫调优。
+_W_TRUST = float(os.environ.get("LOOM_W_TRUST", "0.4"))
 
 
 def _patch_factstore_with_fastembed(store: FactStore) -> None:
@@ -162,7 +170,7 @@ class MemoryBackend:
             # 信任分用 Beta-Bernoulli worth(s/f 计数)，融入排序
             worth = self.worth.get_worth(r["id"])
             sim = r.get("score", 0)  # fact_store 的语义相似度
-            final = sim + 0.2 * worth  # 信任加权(W_TRUST=0.2)
+            final = sim + _W_TRUST * worth  # 信任加权(可配 LOOM_W_TRUST)
             hits.append({
                 "ref": meta.get("ref", "?"),
                 "summary": meta.get("summary", ""),
