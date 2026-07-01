@@ -19,20 +19,21 @@ from memory_backend import MemoryBackend
 # seam→(查询, 该 seam 种子里应该命中的候选类型)
 QUERIES = [
     # 来自 infer_seam 的中文 intent(为推断写的，不是为检索定制)
-    ("ui.data_table", "数据表格展示列表", "中文intent"),
-    ("ui.form", "表单创建编辑", "中文intent"),
-    ("auth.oauth_provider", "Google OAuth 登录", "中文intent"),
-    ("data.crud_resource", "对 Project 增删改查 CRUD", "中文intent"),
-    ("ui.layout", "侧边栏布局", "中文intent"),
+    # (seam, query, 来源, gold)——gold=语义上该命中的候选(判 top3 是否含)，None=无强期望只看非空
+    ("ui.data_table", "数据表格展示列表", "中文intent", None),
+    ("ui.form", "表单创建编辑", "中文intent", None),
+    ("auth.oauth_provider", "Google OAuth 登录", "中文intent", "google-oauth"),
+    ("data.crud_resource", "对 Project 增删改查 CRUD", "中文intent", "project-crud-router"),
+    ("ui.layout", "侧边栏布局", "中文intent", "sidebar-layout"),
     # 模拟 GitHub issue 标题风格(英文,第三方用词)
-    ("ui.data_table", "need a sortable filterable data grid", "GH issue EN"),
-    ("ui.form", "add a form with validation and submit", "GH issue EN"),
-    ("auth.oauth_provider", "implement social login with Google", "GH issue EN"),
-    ("data.crud_resource", "REST API for creating and deleting resources", "GH issue EN"),
-    ("ui.layout", "responsive sidebar navigation layout", "GH issue EN"),
+    ("ui.data_table", "need a sortable filterable data grid", "GH issue EN", "sortable-data-table"),
+    ("ui.form", "add a form with validation and submit", "GH issue EN", "validated-form"),
+    ("auth.oauth_provider", "implement social login with Google", "GH issue EN", "google-oauth"),
+    ("data.crud_resource", "REST API for creating and deleting resources", "GH issue EN", None),
+    ("ui.layout", "responsive sidebar navigation layout", "GH issue EN", "sidebar-layout"),
     # 跨语言(中文查询，英文候选 summary / 反过来)
-    ("ui.data_table", "我要一个可以排序筛选的表格", "ZH→EN候选"),
-    ("ui.form", "I need a form component with built-in validation", "EN→候选"),
+    ("ui.data_table", "我要一个可以排序筛选的表格", "ZH→EN候选", "sortable-data-table"),
+    ("ui.form", "I need a form component with built-in validation", "EN→候选", "validated-form"),
 ]
 
 
@@ -44,23 +45,26 @@ def main():
     mb.bootstrap_from_seed()
     print(f"embedder={embedder}, 种子={mb.count}")
 
-    # --- 1. 第三方查询召回率 ---
+    # --- 1. 第三方查询检索质量(gold@top3，非"非空即命中"的平凡标准) ---
     print("\n" + "=" * 60)
-    print("1. 第三方查询召回率(查询非为检索定制)")
+    print("1. 第三方查询检索质量：gold 候选是否进 top3(查询非为检索定制)")
     print("=" * 60)
     hit = 0
-    total = 0
-    for seam, query, src in QUERIES:
-        hits = mb.retrieve(seam, query, top_k=5)
+    scored = 0
+    for seam, query, src, gold in QUERIES:
+        hits = mb.retrieve(seam, query, top_k=3)
         refs = [h["ref"] for h in hits]
-        # 召回标准：该 seam 下返回了至少 1 个候选(不判 ref 名,因为第三方查询不知道库里有啥)
-        recalled = len(refs) > 0
-        total += 1
-        if recalled:
-            hit += 1
-        status = f"top1={refs[0]}" if refs else "✗空"
-        print(f"  [{src:12s}] seam={seam:22s} → {status}")
-    print(f"\n  召回率: {hit}/{total} = {hit/total:.0%}")
+        if gold:
+            scored += 1
+            ok = gold in refs
+            if ok:
+                hit += 1
+            mark = "✓" if ok else "✗"
+            rank = f"#{refs.index(gold)+1}" if ok else "未进top3"
+            print(f"  {mark} [{src:10s}] {query[:28]:28s} → gold={gold} {rank}  top3={refs[:3]}")
+        else:
+            print(f"    [{src:10s}] {query[:28]:28s} → (无gold) top1={refs[0] if refs else '空'}")
+    print(f"\n  gold@top3 准确率: {hit}/{scored} = {hit/scored:.0%}(只统计有 gold 标注的语义明确查询)")
 
     # --- 2. fastembed 规模化(用 ingest_batch) ---
     print("\n" + "=" * 60)

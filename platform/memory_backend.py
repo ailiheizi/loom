@@ -37,13 +37,10 @@ ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_STORE_DIR = str(ROOT / ".work" / "loom-memory")
 
 # 检索排序里信任(worth)的权重。越大→飞轮越能让常用候选翻盘，但也越可能压过语义。
-# 可用 LOOM_W_TRUST 显式覆盖。未设时按 embedder 自适应：
+# 可用 LOOM_W_TRUST 显式覆盖。未设时按【实际生效的】embedder 自适应(见 __init__)：
 #   stub(词袋)：同 seam 候选分差大(~0.22)，需 0.4 才翻盘(#8→#3)
-#   fastembed(BGE)：同 seam 候选分差小(~0.07)，0.2 即翻盘，0.4 过度(一次成功可能霸榜)
+#   fastembed：同 seam 候选分差小(~0.07)，0.2 即翻盘，0.4 过度(一次成功可能霸榜)
 _W_TRUST_EXPLICIT = os.environ.get("LOOM_W_TRUST")
-_W_TRUST = float(_W_TRUST_EXPLICIT) if _W_TRUST_EXPLICIT else (
-    0.2 if os.environ.get("LOOM_EMBED_PROVIDER", "").lower() == "fastembed" else 0.4
-)
 
 
 def _patch_factstore_with_fastembed(store: FactStore) -> None:
@@ -56,6 +53,8 @@ def _patch_factstore_with_fastembed(store: FactStore) -> None:
     # 尊重 LOOM_EMBED_PROVIDER：stub 模式直接用词袋(零加载),不碰 fastembed(它要加载 ONNX 模型,慢)
     use_stub = os.environ.get("LOOM_EMBED_PROVIDER", "").lower() == "stub"
     model = None
+    kind = "stub"
+    model_name = "stub-bow"  # 词袋兜底的标识
     if not use_stub:
         try:
             from fastembed import TextEmbedding
@@ -75,6 +74,7 @@ def _patch_factstore_with_fastembed(store: FactStore) -> None:
                 def dim(self):
                     return _dim
             model = _FastEmbed()
+            kind = "fastembed"
         except Exception:
             model = None
     if model is None:
@@ -118,6 +118,9 @@ def _patch_factstore_with_fastembed(store: FactStore) -> None:
         faiss.normalize_L2(vecs)
         self._index.add(vecs)
     store._rebuild_index = lambda: _rebuild_index(store)
+    # 返回实际生效的 embedder 类型 + 模型名(fastembed 加载失败会回退 stub)——
+    # 供调用方设 W_TRUST + 检测"库换了模型"(排序会变)，避免按环境变量猜错。
+    return kind, model_name
 
 
 class MemoryBackend:
@@ -126,13 +129,41 @@ class MemoryBackend:
     def __init__(self, store_dir: str = DEFAULT_STORE_DIR, embed_model: str = "BAAI/bge-small-en-v1.5"):
         self.store = FactStore(store_dir, embed_model=embed_model)
         # 用本地 fastembed/stub 替换 sentence-transformers(避免 HuggingFace 下载)
-        _patch_factstore_with_fastembed(self.store)
+        kind, model_name = _patch_factstore_with_fastembed(self.store)
+        # 模型指纹检查：库若用别的模型建过，换模型会改变检索排序(向量空间不同)。
+        # 不阻断(向量不持久化，会用新模型重建，结果自洽)，但 warn 提示用户结果会变。
+        self._check_model_fingerprint(store_dir, model_name)
+        # W_TRUST 按【实际生效的】embedder 定(不是按环境变量猜)：显式 LOOM_W_TRUST 优先，
+        # 否则 fastembed=0.2 / stub=0.4。fastembed 回退 stub 时 kind 已是 stub，不会配错。
+        self._w_trust = float(_W_TRUST_EXPLICIT) if _W_TRUST_EXPLICIT else (
+            0.2 if kind == "fastembed" else 0.4
+        )
         # 信任评分：用 memory-engine 的 Beta-Bernoulli MemoryWorth(上游官方实现)
         try:
             from loom_vendor.memory_worth import MemoryWorth
         except ImportError:
             from memory_engine.memory_worth import MemoryWorth
         self.worth = MemoryWorth(self.store)
+
+    def _check_model_fingerprint(self, store_dir: str, model_name: str) -> None:
+        """记录/校验库是用哪个 embedding 模型建的。换模型会改变检索排序——
+        向量不持久化(每次用当前模型重建索引，无旧向量污染)，所以不阻断，但 warn 提示。
+        """
+        try:
+            from pathlib import Path
+            fp = Path(store_dir).parent / ".loom_embed_model"
+            prev = fp.read_text(encoding="utf-8").strip() if fp.exists() else None
+            if prev and prev != model_name:
+                logger.warning(
+                    f"embedding 模型已从 '{prev}' 换成 '{model_name}'——"
+                    f"同一个库的检索排序会变化(语义空间不同)。"
+                    f"如需保持旧行为，设 LOOM_EMBED_MODEL={prev}。"
+                )
+            if prev != model_name:
+                fp.parent.mkdir(parents=True, exist_ok=True)
+                fp.write_text(model_name, encoding="utf-8")
+        except Exception:
+            pass  # 指纹检查是尽力而为，失败不影响主流程
 
     def _make_text(self, summary: str, seam_id: str, ref: str, exports: list[str] | None = None) -> str:
         """构造可检索的 fact text（summary + seam + ref + 导出签名）。"""
@@ -204,7 +235,7 @@ class MemoryBackend:
             # 信任分用 Beta-Bernoulli worth(s/f 计数)，融入排序
             worth = self.worth.get_worth(r["id"])
             sim = r.get("score", 0)  # fact_store 的语义相似度
-            final = sim + _W_TRUST * worth  # 信任加权(可配 LOOM_W_TRUST)
+            final = sim + self._w_trust * worth  # 信任加权(按实际 embedder 自适应)
             hits.append({
                 "ref": meta.get("ref", "?"),
                 "summary": meta.get("summary", ""),
