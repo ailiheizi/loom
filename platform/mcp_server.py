@@ -131,6 +131,8 @@ def loom_materialize(plan_json: str) -> str:
     plan_path = WORK / f"assembly-plan-{plan.idea_id}.json"
     plan_path.write_text(plan.model_dump_json(indent=2), encoding="utf-8")
     out_dir = WORK / f"loom-out-{plan.idea_id}"
+    # 真实信号落点：client gate 产出的 per-候选 success/failure 写这里，本函数消费后喂飞轮。
+    outcomes_path = WORK / f"outcomes-{plan.idea_id}.jsonl"
 
     # client 物化入口：cd client && LOOM_OUT=.. LOOM_PLAN=.. LOOM_REPAIR_MODE=none node tsx ...
     client = ROOT / "client"
@@ -142,6 +144,7 @@ def loom_materialize(plan_json: str) -> str:
             "LOOM_OUT": str(out_dir),
             "LOOM_PLAN": str(plan_path),
             "LOOM_REPAIR_MODE": "none",  # server 零 LLM，残留错交宿主 agent
+            "LOOM_OUTCOMES_PATH": str(outcomes_path),  # client gate 把真实信号写这
         },
         capture_output=True,
         text=True,
@@ -179,6 +182,17 @@ def loom_materialize(plan_json: str) -> str:
         result["hint"] = "gate 未收敛。这些诊断需你（宿主 agent）在 out_dir 里直接改文件修复，然后重跑 tsc 确认。"
     if proc.returncode != 0 and not stdout:
         result["error"] = (proc.stderr or "")[-500:]
+
+    # 立即消费 client gate 产出的真实信号驱动飞轮——本函数就在 platform 进程里，
+    # subprocess 已写完 outcomes，此刻消费不必等 MCP server 重启(修生命周期问题)。
+    try:
+        from memory_backend import get_backend
+        n = get_backend().consume_outcomes(str(outcomes_path))
+        if n:
+            result["flywheel_signals"] = n  # 回报本次真实信号数，便于观测飞轮在转
+    except Exception as e:
+        result["flywheel_warning"] = f"信号消费失败(不影响物化): {e}"
+
     return json.dumps(result, ensure_ascii=False, indent=2)
 
 

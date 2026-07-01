@@ -20,6 +20,8 @@ export interface Outcome {
   success: boolean;
   /** 该候选文件上的 tsc 错误数(0=通过) */
   error_count: number;
+  /** 因被多决策共享(barrel/generate 撞名)而跳过归因的文件数，用于审计 */
+  shared_files_skipped: number;
   /** 信号来源，便于 platform 侧审计 */
   source: "client-gate";
 }
@@ -39,22 +41,40 @@ export function computeOutcomes(
     const f = normFile(d.file);
     errCountByFile.set(f, (errCountByFile.get(f) ?? 0) + 1);
   }
-  const outcomes: Outcome[] = [];
 
+  // 统计每个 target 被多少个决策"拥有"——只有【独占】文件的错误才能干净归因到某候选。
+  // 共享文件(如 barrel 宿主 root.ts 被多候选 append，或 generate 与 pick 撞同名)的错误
+  // 归属不明，不计入任何候选的 failure(避免误伤/信号黑洞误判)。
+  const ownerCount = new Map<string, number>();
+  for (const seam of plan.seams) {
+    const meta =
+      seam.action === "pick" || seam.action === "adapt"
+        ? (seam.ref ? candidates.get(seam.seam_id)?.get(seam.ref) : undefined)
+        : undefined;
+    const files = meta ? meta.registry_item.files.map((f) => normFile(f.target)) : [];
+    // generate 决策落的文件也算一个"拥有者"，使其与 pick 撞名时该文件变共享→不归给 pick
+    if (seam.action === "generate" && seam.generated_file) files.push(normFile(seam.generated_file));
+    for (const f of new Set(files)) ownerCount.set(f, (ownerCount.get(f) ?? 0) + 1);
+  }
+
+  const outcomes: Outcome[] = [];
   for (const seam of plan.seams) {
     // 只对真正落了候选代码的决策产信号(pick/adapt 有 ref)；generate/skip 不是"复用候选"
     if ((seam.action !== "pick" && seam.action !== "adapt") || !seam.ref) continue;
     const meta = candidates.get(seam.seam_id)?.get(seam.ref);
     if (!meta) continue;
 
-    // 该候选落盘的目标文件上的 tsc 错误总数
+    // 只统计【该候选独占】的目标文件上的错误——共享文件(ownerCount>1)错误归属不明，跳过
     const targets = meta.registry_item.files.map((f) => normFile(f.target));
-    const errCount = targets.reduce((n, t) => n + (errCountByFile.get(t) ?? 0), 0);
+    const ownFiles = targets.filter((t) => (ownerCount.get(t) ?? 0) === 1);
+    const sharedSkipped = targets.length - ownFiles.length;
+    const errCount = ownFiles.reduce((n, t) => n + (errCountByFile.get(t) ?? 0), 0);
     outcomes.push({
       ref: seam.ref,
       seam_id: seam.seam_id,
       success: errCount === 0,
       error_count: errCount,
+      shared_files_skipped: sharedSkipped,
       source: "client-gate",
     });
   }

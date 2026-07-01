@@ -287,35 +287,47 @@ class MemoryBackend:
         return 0.5
 
     def consume_outcomes(self, outcomes_path: str) -> int:
-        """消费 client 端 gate 产出的真实信号(jsonl)，逐条 reinforce，然后删除文件(幂等)。
+        """消费 client 端 gate 产出的真实信号(jsonl)，逐条 reinforce。幂等 + 不丢信号。
 
         每行 {ref, success, ...}(client outcomes.ts 的 Outcome)。信号来自全项目 tsc，
         是飞轮的真实成功入口——不依赖 agent 主动调 loom_record_outcome。
-        消费后删除文件，避免下次启动重复计数(幂等消费)。
+
+        幂等策略：成功 reinforce 的行消费掉；ref 暂不在库(reinforce 返回 False)的行【保留】，
+        重写回文件供下次重试(不因文件已删而永久丢信号)。坏行(JSON 解析失败)是死信，丢弃。
+        全部成功 → 删文件；有保留行 → 只写回保留行。
         """
         from pathlib import Path
         p = Path(outcomes_path)
         if not p.exists():
             return 0
         n = 0
+        retained: list[str] = []  # ref 暂不在库、值得下次重试的原始行
         for line in p.read_text(encoding="utf-8").splitlines():
             line = line.strip()
             if not line:
                 continue
             try:
                 rec = json.loads(line)
-                ref = rec.get("ref")
-                if ref and self.reinforce(ref, success=bool(rec.get("success", True))):
-                    n += 1
-            except (json.JSONDecodeError, KeyError):
-                continue  # 跳过坏行，不因一条脏数据丢整批
-        # 幂等：消费后删除(已 reinforce 进 worth 的 s/f 计数，信号本身无需保留)
+            except json.JSONDecodeError:
+                continue  # 死信坏行，丢弃(不保留，否则永远卡住)
+            ref = rec.get("ref")
+            if not ref:
+                continue  # 无 ref 的行无意义，丢弃
+            if self.reinforce(ref, success=bool(rec.get("success", True))):
+                n += 1
+            else:
+                retained.append(line)  # ref 不在库(可能候选还没 ingest)，保留重试
+        # 幂等收尾：有保留行只写回保留行(成功的不重复计数)；否则删文件
         try:
-            p.unlink()
+            if retained:
+                p.write_text("\n".join(retained) + "\n", encoding="utf-8")
+            else:
+                p.unlink()
         except OSError:
             pass
         if n:
-            logger.info(f"消费 {n} 条真实信号(client gate)驱动飞轮，来自 {outcomes_path}")
+            logger.info(f"消费 {n} 条真实信号(client gate)驱动飞轮" +
+                        (f"，{len(retained)} 条 ref 暂不在库已保留重试" if retained else ""))
         return n
 
     def list_candidates(self, seam_id: str | None = None) -> list[dict]:

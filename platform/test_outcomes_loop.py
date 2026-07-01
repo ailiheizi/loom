@@ -70,6 +70,21 @@ def main():
     except Exception as e:
         check("坏行不崩溃(跳过脏数据)", False, str(e))
 
+    # 6. ref 不在库 → 保留重试(不因文件删而丢信号)
+    op.write_text(
+        json.dumps({"ref": "google-oauth", "success": True}) + "\n" +
+        json.dumps({"ref": "does-not-exist-ref", "success": True}) + "\n",
+        encoding="utf-8",
+    )
+    b5 = b4  # 复用已消费过的 backend(库里有 google-oauth，无 does-not-exist-ref)
+    consumed = b5.consume_outcomes(str(op))
+    check("在库的 ref 被消费", consumed == 1, f"consumed={consumed}")
+    check("不在库的 ref 保留文件重试", op.exists())
+    if op.exists():
+        remain = [l for l in op.read_text(encoding="utf-8").splitlines() if l.strip()]
+        check("保留的正是不在库那条", len(remain) == 1 and "does-not-exist-ref" in remain[0],
+              f"remain={remain}")
+
     shutil.rmtree(store, ignore_errors=True)
     os.environ.pop("LOOM_STORE_DIR", None)
     print(f"\n=== {'PASS' if not fails else 'FAIL: ' + ', '.join(fails)} ===")
