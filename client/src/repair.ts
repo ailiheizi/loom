@@ -30,6 +30,7 @@ import { complete, extractCode } from "./llm.js";
 import { gate, type GateResult } from "./gate.js";
 import { materialize, type MaterializeInput } from "./materialize.js";
 import { injectEnv } from "./injectEnv.js";
+import { computeOutcomes, emitOutcomes } from "./outcomes.js";
 import type { CandidateMeta } from "./loadCandidates.js";
 import { AssemblyMetrics, type AssemblyPlan, type Diagnostic, type RepairRound } from "./contracts.js";
 
@@ -653,6 +654,17 @@ export async function repairLoop(cfg: RepairConfig): Promise<RepairResult> {
 
   const metricsPath = persistMetrics(metricsDir, cfg.arm, metrics);
   log(`converged=${converged} final_error=${g.errorCount} 指标写入 ${metricsPath}`);
+
+  // 真实信号：把本次 gate 结果转成 per-候选 success/failure 写 outcomes 文件，
+  // platform 下次启动消费驱动飞轮(不依赖 agent 主动回报)。LOOM_OUTCOMES_PATH 未设则跳过。
+  try {
+    const outcomes = computeOutcomes(cfg.plan, cfg.candidates, g);
+    if (emitOutcomes(outcomes)) {
+      log(`真实信号已产出：${outcomes.length} 个候选(success=${outcomes.filter((o) => o.success).length})`);
+    }
+  } catch (e) {
+    log(`产出真实信号失败(不影响物化): ${e instanceof Error ? e.message : String(e)}`);
+  }
 
   return {
     metrics,

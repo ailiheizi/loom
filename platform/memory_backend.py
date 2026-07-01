@@ -286,6 +286,38 @@ class MemoryBackend:
                 return self.worth.get_worth(f["id"])
         return 0.5
 
+    def consume_outcomes(self, outcomes_path: str) -> int:
+        """消费 client 端 gate 产出的真实信号(jsonl)，逐条 reinforce，然后删除文件(幂等)。
+
+        每行 {ref, success, ...}(client outcomes.ts 的 Outcome)。信号来自全项目 tsc，
+        是飞轮的真实成功入口——不依赖 agent 主动调 loom_record_outcome。
+        消费后删除文件，避免下次启动重复计数(幂等消费)。
+        """
+        from pathlib import Path
+        p = Path(outcomes_path)
+        if not p.exists():
+            return 0
+        n = 0
+        for line in p.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                rec = json.loads(line)
+                ref = rec.get("ref")
+                if ref and self.reinforce(ref, success=bool(rec.get("success", True))):
+                    n += 1
+            except (json.JSONDecodeError, KeyError):
+                continue  # 跳过坏行，不因一条脏数据丢整批
+        # 幂等：消费后删除(已 reinforce 进 worth 的 s/f 计数，信号本身无需保留)
+        try:
+            p.unlink()
+        except OSError:
+            pass
+        if n:
+            logger.info(f"消费 {n} 条真实信号(client gate)驱动飞轮，来自 {outcomes_path}")
+        return n
+
     def list_candidates(self, seam_id: str | None = None) -> list[dict]:
         """列出所有候选（或某 seam 的）。"""
         results = []
@@ -355,4 +387,14 @@ def get_backend() -> MemoryBackend:
         store_dir = os.environ.get("LOOM_STORE_DIR", str(Path.home() / ".loom"))
         _BACKEND = MemoryBackend(store_dir=str(Path(store_dir) / "facts"))
         _BACKEND.bootstrap_from_seed()  # 首次自动导入 seed
+        # 消费 client 端 gate 产出的真实信号(tsc 结果)驱动飞轮——
+        # 不依赖 agent 主动调 loom_record_outcome。路径优先 LOOM_OUTCOMES_PATH，
+        # 否则默认 <store_dir>/outcomes.jsonl(client 设同一路径即自动闭环)。
+        outcomes_path = os.environ.get(
+            "LOOM_OUTCOMES_PATH", str(Path(store_dir) / "outcomes.jsonl")
+        )
+        try:
+            _BACKEND.consume_outcomes(outcomes_path)
+        except Exception as e:
+            logger.warning(f"消费 outcomes 信号失败(不影响主流程): {e}")
     return _BACKEND
