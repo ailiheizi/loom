@@ -110,20 +110,48 @@ def main():
     found = any("dashboard" in r.lower() or "mydashboard" in r.lower() for r in refs)
     check("检索到用户自己 ingest 的组件", found, f"top5={refs}")
 
-    # ── 第 7 步：飞轮验证——复用后 worth 升,不复用 worth 不变
-    print("\n▶ 7. 飞轮验证：反复复用 → worth 真升")
-    test_ref = picked_refs[0] if picked_refs else None
-    if test_ref:
-        w0 = backend.get_worth(test_ref)
-        for _ in range(5):
-            backend.reinforce(test_ref, success=True)
-        w1 = backend.get_worth(test_ref)
-        backend.reinforce(test_ref, success=False)
-        backend.reinforce(test_ref, success=False)
-        w2 = backend.get_worth(test_ref)
-        check("5次成功 → worth 升", w1 > w0, f"{w0:.3f}→{w1:.3f}")
-        check("2次失败 → worth 降", w2 < w1, f"{w1:.3f}→{w2:.3f}")
-        check("飞轮双向可控", w1 > w0 and w2 < w1)
+    # ── 第 7 步：飞轮验证——真正的"越用越强"：排名随使用提升
+    print("\n▶ 7. 越用越强核心验证：被复用候选在竞争中排名真的提升")
+    # 用 ui.data_table(有 8 个种子候选,语义都相关)做竞争对照
+    hits_before = backend.retrieve("ui.data_table", "data table", top_k=10)
+    if len(hits_before) >= 3:
+        # 取排名最后的候选作为目标
+        target_ref = hits_before[-1]["ref"]
+        rank_before = len(hits_before)
+        w_before = backend.get_worth(target_ref)
+
+        # 只对目标做 8 次成功强化(模拟"这个候选被反复用且验证通过")
+        for _ in range(8):
+            backend.reinforce(target_ref, success=True)
+        w_after = backend.get_worth(target_ref)
+
+        # 关键断言：再次检索时,该候选排名真的提升了
+        hits_after = backend.retrieve("ui.data_table", "data table", top_k=10)
+        refs_after = [h["ref"] for h in hits_after]
+        rank_after = refs_after.index(target_ref) + 1 if target_ref in refs_after else -1
+
+        check("worth 升", w_after > w_before, f"{w_before:.3f}→{w_after:.3f}")
+        check("排名真的提升(越用越强核心)", rank_after < rank_before,
+              f"#{rank_before}→#{rank_after}")
+        # 对照：没被强化的候选排名没变或下降
+        other_ref = hits_before[0]["ref"]  # 之前排第一的
+        rank_other_after = refs_after.index(other_ref) + 1 if other_ref in refs_after else -1
+        check("未强化候选排名不升", rank_other_after >= 1)  # 至少没比之前更前
+    else:
+        check("ui.data_table 有足够候选做竞争", False)
+
+    # ── 第 8 步：失败信号验证——坏候选真的沉底
+    print("\n▶ 8. 坏候选沉底验证：失败信号让排名下降")
+    if len(hits_before) >= 3:
+        top_ref = hits_before[0]["ref"]
+        rank_top_before = 1
+        for _ in range(10):
+            backend.reinforce(top_ref, success=False)
+        hits_punished = backend.retrieve("ui.data_table", "data table", top_k=10)
+        refs_p = [h["ref"] for h in hits_punished]
+        rank_top_after = refs_p.index(top_ref) + 1 if top_ref in refs_p else -1
+        check("10次失败后排名下降(坏候选沉底)", rank_top_after > rank_top_before,
+              f"#{rank_top_before}→#{rank_top_after}")
 
     # ── 清理
     shutil.rmtree(STORE, ignore_errors=True)
