@@ -136,23 +136,27 @@ def loom_materialize(plan_json: str) -> str:
 
     # client 物化入口：cd client && LOOM_OUT=.. LOOM_PLAN=.. LOOM_REPAIR_MODE=none node tsx ...
     client = ROOT / "client"
-    proc = subprocess.run(
-        ["node", "node_modules/tsx/dist/cli.mjs", "scripts/loom_materialize.ts"],
-        cwd=str(client),
-        env={
-            **_env(),
-            "LOOM_OUT": str(out_dir),
-            "LOOM_PLAN": str(plan_path),
-            "LOOM_REPAIR_MODE": "none",  # server 零 LLM，残留错交宿主 agent
-            "LOOM_OUTCOMES_PATH": str(outcomes_path),  # client gate 把真实信号写这
-        },
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-        timeout=600,
-    )
-    stdout = proc.stdout or ""
+    try:
+        proc = subprocess.run(
+            ["node", "node_modules/tsx/dist/cli.mjs", "scripts/loom_materialize.ts"],
+            cwd=str(client),
+            env={
+                **_env(),
+                "LOOM_OUT": str(out_dir),
+                "LOOM_PLAN": str(plan_path),
+                "LOOM_REPAIR_MODE": "none",  # server 零 LLM，残留错交宿主 agent
+                "LOOM_OUTCOMES_PATH": str(outcomes_path),  # client gate 把真实信号写这
+            },
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=600,
+        )
+    except subprocess.TimeoutExpired:
+        # 超时时 client 可能已写了 outcomes(gate 跑完但修复轮卡住)——仍消费，不丢信号
+        proc = None
+    stdout = proc.stdout or "" if proc else ""
     # 解析 converged / final_error（materialize 打印 "converged=... final_error=..."）
     converged = "converged=true" in stdout
     final_err = 0
@@ -173,14 +177,16 @@ def loom_materialize(plan_json: str) -> str:
         "out_dir": str(out_dir),
         "converged": converged,
         "final_error_count": final_err,
-        "ok": proc.returncode == 0 and converged,
+        "ok": (proc.returncode == 0 and converged) if proc else False,
         "next": f"cd {out_dir} && pnpm install && node node_modules/next/dist/bin/next dev",
         "log_tail": "\n".join(stdout.splitlines()[-15:]),
     }
+    if not proc:
+        result["error"] = "client 物化超时(600s)"
     if unresolved:
         result["unresolved"] = unresolved
         result["hint"] = "gate 未收敛。这些诊断需你（宿主 agent）在 out_dir 里直接改文件修复，然后重跑 tsc 确认。"
-    if proc.returncode != 0 and not stdout:
+    if proc and proc.returncode != 0 and not stdout:
         result["error"] = (proc.stderr or "")[-500:]
 
     # 立即消费 client gate 产出的真实信号驱动飞轮——本函数就在 platform 进程里，
